@@ -1,5 +1,19 @@
 # Pigeon
 
+## flutter 特定 api 与 数据模型分离
+ pigeon 自动生成的数据模型 和 flutter 与宿主平台通讯的代码放在一起。而这些 flutter 特定 api 只能依托 flutter 才能正常编译。为了
+ 满足通过 pigeon 生成的数据模型能够重复原生平台使用，所以将数据模型
+ 和 flutter 特定 api 的接口分离。使数据模型作为独立的模块，不进可以在 flutter 项目中使用，在原生平台上也能正常使用。
+
+- **实现的原理**
+通过修改代码模板实现。
+
+- **使用**
+在 iOS 中使用时，如果是 flutter 项目，需要定义 `__FLUTTER__` 宏。
+
+- **示例**
+参照 [example]('./example/generate.sh')
+
 Pigeon is a code generator tool to make communication between Flutter and the
 host platform type-safe, easier and faster.
 

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'ast.dart';
 import 'functional.dart';
 import 'generator.dart';
@@ -29,7 +31,7 @@ const DocumentCommentSpecification _docCommentSpec =
 class KotlinOptions {
   /// Creates a [KotlinOptions] object
   const KotlinOptions(
-      {this.package, this.copyrightHeader, this.errorClassName});
+      {this.package, this.copyrightHeader, this.errorClassName, this.output});
 
   /// The package where the generated class will live.
   final String? package;
@@ -39,6 +41,9 @@ class KotlinOptions {
 
   /// The name of the error class used for passing custom error parameters.
   final String? errorClassName;
+
+  /// Path to the kotlin files that will be generated.
+  final String? output;
 
   /// Creates a [KotlinOptions] from a Map representation where:
   /// `x = KotlinOptions.fromMap(x.toMap())`.
@@ -92,12 +97,12 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     }
     indent.newln();
     indent.writeln('import android.util.Log');
-    indent.writeln('import io.flutter.plugin.common.BasicMessageChannel');
-    indent.writeln('import io.flutter.plugin.common.BinaryMessenger');
-    indent.writeln('import io.flutter.plugin.common.MessageCodec');
-    indent.writeln('import io.flutter.plugin.common.StandardMessageCodec');
-    indent.writeln('import java.io.ByteArrayOutputStream');
-    indent.writeln('import java.nio.ByteBuffer');
+    // indent.writeln('import io.flutter.plugin.common.BasicMessageChannel');
+    // indent.writeln('import io.flutter.plugin.common.BinaryMessenger');
+    // indent.writeln('import io.flutter.plugin.common.MessageCodec');
+    // indent.writeln('import io.flutter.plugin.common.StandardMessageCodec');
+    // indent.writeln('import java.io.ByteArrayOutputStream');
+    // indent.writeln('import java.nio.ByteBuffer');
   }
 
   @override
@@ -295,6 +300,22 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     Root root,
     Indent indent,
   ) {
+    final String? out = generatorOptions.output?.replaceAll('.kt', '');
+    final File file = File('${out}_Apis.kt');
+    final IOSink sink = file.openWrite();
+    final Indent indent = Indent(sink);
+    indent.newln();
+    if (generatorOptions.package != null) {
+      indent.writeln('package ${generatorOptions.package}');
+    }
+    indent.newln();
+    indent.writeln('import android.util.Log');
+    indent.writeln('import io.flutter.plugin.common.BasicMessageChannel');
+    indent.writeln('import io.flutter.plugin.common.BinaryMessenger');
+    indent.writeln('import io.flutter.plugin.common.MessageCodec');
+    indent.writeln('import io.flutter.plugin.common.StandardMessageCodec');
+    indent.writeln('import java.io.ByteArrayOutputStream');
+    indent.writeln('import java.nio.ByteBuffer');
     if (root.apis.any((Api api) =>
         api.location == ApiLocation.host &&
         api.methods.any((Method it) => it.isAsynchronous))) {

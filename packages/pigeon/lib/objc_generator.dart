@@ -217,8 +217,10 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
 
   @override
   void writeApis(ObjcOptions generatorOptions, Root root, Indent indent) {
+    indent.writeln('#ifdef __FLUTTER__');
     super.writeApis(generatorOptions, root, indent);
     indent.writeln('NS_ASSUME_NONNULL_END');
+    indent.writeln('#endif');
   }
 
   @override
@@ -267,6 +269,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     Indent indent,
     Api api,
   ) {
+    indent.writeln('#ifdef __FLUTTER__');
     indent.writeln(
         '$_docCommentPrefix The codec used by ${_className(generatorOptions.prefix, api.name)}.');
     indent.writeln(
@@ -325,6 +328,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.newln();
     indent.writeln(
         'extern void ${apiName}Setup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<$apiName> *_Nullable api);');
+    indent.writeln('#endif');
     indent.newln();
   }
 }
@@ -349,7 +353,9 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
   void writeFileImports(
       ObjcOptions generatorOptions, Root root, Indent indent) {
     indent.writeln('#import "${generatorOptions.headerIncludePath}"');
+    indent.writeln('#ifdef __FLUTTER__');
     indent.writeln('#import <Flutter/Flutter.h>');
+    indent.writeln('#endif');
     indent.newln();
 
     indent.writeln('#if !__has_feature(objc_arc)');
@@ -647,6 +653,7 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
 
   void _writeObjcSourceHelperFunctions(Indent indent,
       {required bool hasHostApiMethods}) {
+    indent.writeln('#ifdef __FLUTTER__');
     if (hasHostApiMethods) {
       indent.format('''
 static NSArray *wrapResult(id result, FlutterError *error) {
@@ -658,6 +665,7 @@ static NSArray *wrapResult(id result, FlutterError *error) {
 \treturn @[ result ?: [NSNull null] ];
 }''');
     }
+    indent.writeln('#endif');
     indent.format('''
 static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 \tid result = array[key];

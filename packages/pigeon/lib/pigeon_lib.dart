@@ -637,6 +637,11 @@ class KotlinGeneratorAdapter implements GeneratorAdapter {
         copyrightHeader: options.copyrightHeader != null
             ? _lineReader(options.copyrightHeader!)
             : null));
+    kotlinOptions = KotlinOptions(
+        package: kotlinOptions.package,
+        copyrightHeader: kotlinOptions.copyrightHeader,
+        errorClassName: kotlinOptions.errorClassName,
+        output: options.kotlinOut); // 将 kotlin output 传递下去，用于 api 和 models 分离
     const KotlinGenerator generator = KotlinGenerator();
     generator.generate(kotlinOptions, root, sink);
   }
