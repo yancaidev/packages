@@ -60,3 +60,13 @@ data class Hello (
     )
   }
 }
+/**
+ * host 平台提供的接口
+ *
+ * Generated interface from Pigeon that represents a handler of messages from Flutter.
+ */
+interface HelloHostApi {
+  /** say hello to host api; */
+  fun sayHelloToHostApi(hello: Hello)
+
+}

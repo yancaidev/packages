@@ -31,41 +31,33 @@ private object HelloHostApiCodec : StandardMessageCodec() {
   }
 }
 
-/**
- * host 平台提供的接口
- *
- * Generated interface from Pigeon that represents a handler of messages from Flutter.
- */
-interface HelloHostApi {
-  /** say hello to host api; */
-  fun sayHelloToHostApi(hello: Hello)
-
-  companion object {
-    /** The codec used by HelloHostApi. */
-    val codec: MessageCodec<Any?> by lazy {
-      HelloHostApiCodec
-    }
-    /** Sets up an instance of `HelloHostApi` to handle messages through the `binaryMessenger`. */
-    @Suppress("UNCHECKED_CAST")
-    fun setUp(binaryMessenger: BinaryMessenger, api: HelloHostApi?) {
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.HelloHostApi.sayHelloToHostApi", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val helloArg = args[0] as Hello
-            var wrapped: List<Any?>
-            try {
-              api.sayHelloToHostApi(helloArg)
-              wrapped = listOf<Any?>(null)
-            } catch (exception: Throwable) {
-              wrapped = wrapError(exception)
-            }
-            reply.reply(wrapped)
+@Suppress("UNCHECKED_CAST")
+fun HelloHostApi.Component.setup()
+{
+  /** The codec used by HelloHostApi. */
+  val codec: MessageCodec<Any?> by lazy {
+    HelloHostApiCodec
+  }
+  /** Sets up an instance of `HelloHostApi` to handle messages through the `binaryMessenger`. */
+  @Suppress("UNCHECKED_CAST")
+  fun setUp(binaryMessenger: BinaryMessenger, api: HelloHostApi?) {
+    run {
+      val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.HelloHostApi.sayHelloToHostApi", codec)
+      if (api != null) {
+        channel.setMessageHandler { message, reply ->
+          val args = message as List<Any?>
+          val helloArg = args[0] as Hello
+          var wrapped: List<Any?>
+          try {
+            api.sayHelloToHostApi(helloArg)
+            wrapped = listOf<Any?>(null)
+          } catch (exception: Throwable) {
+            wrapped = wrapError(exception)
           }
-        } else {
-          channel.setMessageHandler(null)
+          reply.reply(wrapped)
         }
+      } else {
+        channel.setMessageHandler(null)
       }
     }
   }
