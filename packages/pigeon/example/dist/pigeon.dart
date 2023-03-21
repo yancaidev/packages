@@ -117,6 +117,7 @@ abstract class HelloFlutterApi {
   static const MessageCodec<Object?> codec = _HelloFlutterApiCodec();
 
   /// say hello to flutter api;
+  /// - hello 参数
   void sayHelloToFlutterApi(Hello hello);
 
   static void setup(HelloFlutterApi? api, {BinaryMessenger? binaryMessenger}) {

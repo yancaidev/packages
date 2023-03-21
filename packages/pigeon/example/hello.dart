@@ -19,5 +19,7 @@ abstract class HelloHostApi {
 @FlutterApi()
 abstract class HelloFlutterApi {
   /// say hello to flutter api;
+  /// - hello 参数
+  @ObjCSelector('sayHelloToFlutterApi:')
   void sayHelloToFlutterApi(Hello hello);
 }

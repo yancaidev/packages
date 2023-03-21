@@ -3,6 +3,43 @@
 
 #import <Foundation/Foundation.h>
 
+
+  #ifndef __FLUTTER__
+
+    /**
+     * Error object representing an unsuccessful outcome of invoking a method
+     * on a `FlutterMethodChannel`, or an error event on a `FlutterEventChannel`.
+     */
+    @interface FlutterError : NSObject
+    /**
+     * Creates a `FlutterError` with the specified error code, message, and details.
+     *
+     * @param code An error code string for programmatic use.
+     * @param message A human-readable error message.
+     * @param details Custom error details.
+     */
+    + (instancetype)errorWithCode:(NSString*)code
+                          message:(NSString* _Nullable)message
+                          details:(id _Nullable)details;
+    /**
+     The error code.
+     */
+    @property(readonly, nonatomic) NSString* code;
+    
+    /**
+     The error message.
+     */
+    @property(readonly, nonatomic, nullable) NSString* message;
+    
+    /**
+     The error details.
+     */
+    @property(readonly, nonatomic, nullable) id details;
+    @end
+    
+    
+        #endif
+  
 @protocol FlutterBinaryMessenger;
 @protocol FlutterMessageCodec;
 @class FlutterError;
@@ -22,7 +59,6 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 #ifdef __FLUTTER__
-#ifdef __FLUTTER__
 /// The codec used by HelloHostApi.
 NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
 
@@ -33,7 +69,6 @@ NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
 @end
 
 extern void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<HelloHostApi> *_Nullable api);
-#endif
 
 /// The codec used by HelloFlutterApi.
 NSObject<FlutterMessageCodec> *HelloFlutterApiGetCodec(void);
@@ -42,8 +77,9 @@ NSObject<FlutterMessageCodec> *HelloFlutterApiGetCodec(void);
 @interface HelloFlutterApi : NSObject
 - (instancetype)initWithBinaryMessenger:(id<FlutterBinaryMessenger>)binaryMessenger;
 /// say hello to flutter api;
-- (void)sayHelloToFlutterApiHello:(Hello *)hello completion:(void (^)(FlutterError *_Nullable))completion;
+/// - hello 参数
+- (void)sayHelloToFlutterApi:(Hello *)hello completion:(void (^)(FlutterError *_Nullable))completion;
 @end
 
-NS_ASSUME_NONNULL_END
 #endif
+NS_ASSUME_NONNULL_END

@@ -167,6 +167,7 @@ class HelloFlutterApi {
     return HelloFlutterApiCodec.shared
   }
   /// say hello to flutter api;
+  /// - hello 参数
   func sayHelloToFlutterApi(hello helloArg: Hello, completion: @escaping () -> Void) {
     let channel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.HelloFlutterApi.sayHelloToFlutterApi", binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([helloArg] as [Any?]) { _ in

@@ -106,7 +106,10 @@ class HelloFlutterApi(private val binaryMessenger: BinaryMessenger) {
       HelloFlutterApiCodec
     }
   }
-  /** say hello to flutter api; */
+  /**
+   * say hello to flutter api;
+   * - hello 参数
+   */
   fun sayHelloToFlutterApi(helloArg: Hello, callback: () -> Unit) {
     val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.HelloFlutterApi.sayHelloToFlutterApi", codec)
     channel.send(listOf(helloArg)) {

@@ -99,14 +99,61 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.newln();
   }
 
+  void _writeFlutterErrorHeader(Indent indent) {
+    indent.writeln('');
+    indent.writeln('  #ifndef __FLUTTER__');
+    indent.writeln('');
+    indent.writeln('    /**');
+    indent.writeln(
+        '     * Error object representing an unsuccessful outcome of invoking a method');
+    indent.writeln(
+        '     * on a `FlutterMethodChannel`, or an error event on a `FlutterEventChannel`.');
+    indent.writeln('     */');
+    indent.writeln('    @interface FlutterError : NSObject');
+    indent.writeln('    /**');
+    indent.writeln(
+        '     * Creates a `FlutterError` with the specified error code, message, and details.');
+    indent.writeln('     *');
+    indent.writeln(
+        '     * @param code An error code string for programmatic use.');
+    indent.writeln('     * @param message A human-readable error message.');
+    indent.writeln('     * @param details Custom error details.');
+    indent.writeln('     */');
+    indent.writeln('    + (instancetype)errorWithCode:(NSString*)code');
+    indent.writeln(
+        '                          message:(NSString* _Nullable)message');
+    indent.writeln('                          details:(id _Nullable)details;');
+    indent.writeln('    /**');
+    indent.writeln('     The error code.');
+    indent.writeln('     */');
+    indent.writeln('    @property(readonly, nonatomic) NSString* code;');
+    indent.writeln('    ');
+    indent.writeln('    /**');
+    indent.writeln('     The error message.');
+    indent.writeln('     */');
+    indent.writeln(
+        '    @property(readonly, nonatomic, nullable) NSString* message;');
+    indent.writeln('    ');
+    indent.writeln('    /**');
+    indent.writeln('     The error details.');
+    indent.writeln('     */');
+    indent.writeln('    @property(readonly, nonatomic, nullable) id details;');
+    indent.writeln('    @end');
+    indent.writeln('    ');
+    indent.writeln('    ');
+    indent.writeln('        #endif');
+    indent.writeln('  ');
+  }
+
   @override
   void writeFileImports(
       ObjcOptions generatorOptions, Root root, Indent indent) {
     indent.writeln('#import <Foundation/Foundation.h>');
     indent.newln();
-
+    _writeFlutterErrorHeader(indent);
     indent.writeln('@protocol FlutterBinaryMessenger;');
     indent.writeln('@protocol FlutterMessageCodec;');
+
     indent.writeln('@class FlutterError;');
     indent.writeln('@class FlutterStandardTypedData;');
     indent.newln();
@@ -219,8 +266,8 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
   void writeApis(ObjcOptions generatorOptions, Root root, Indent indent) {
     indent.writeln('#ifdef __FLUTTER__');
     super.writeApis(generatorOptions, root, indent);
-    indent.writeln('NS_ASSUME_NONNULL_END');
     indent.writeln('#endif');
+    indent.writeln('NS_ASSUME_NONNULL_END');
   }
 
   @override
@@ -269,7 +316,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     Indent indent,
     Api api,
   ) {
-    indent.writeln('#ifdef __FLUTTER__');
     indent.writeln(
         '$_docCommentPrefix The codec used by ${_className(generatorOptions.prefix, api.name)}.');
     indent.writeln(
@@ -328,7 +374,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.newln();
     indent.writeln(
         'extern void ${apiName}Setup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<$apiName> *_Nullable api);');
-    indent.writeln('#endif');
     indent.newln();
   }
 }
@@ -337,6 +382,51 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
 class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
   /// Constructor.
   const ObjcSourceGenerator();
+
+  void _writeFlutterErrorSource(Indent indent) {
+    indent.writeln('');
+    indent.writeln('#ifndef __FLUTTER__');
+    indent.writeln('  @implementation FlutterError');
+    indent.writeln(
+        '+ (instancetype)errorWithCode:(NSString*)code message:(NSString*)message details:(id)details {');
+    indent.writeln(
+        '  return [[FlutterError alloc] initWithCode:code message:message details:details];');
+    indent.writeln('}');
+    indent.writeln('');
+    indent.writeln(
+        '- (instancetype)initWithCode:(NSString*)code message:(NSString*)message details:(id)details {');
+    indent.writeln('  NSAssert(code, @"Code cannot be nil");');
+    indent.writeln('  self = [super init];');
+    indent.writeln('  NSAssert(self, @"Super init cannot be nil");');
+    indent.writeln('  _code = [code copy];');
+    indent.writeln('  _message = [message copy];');
+    indent.writeln('  _details = details;');
+    indent.writeln('  return self;');
+    indent.writeln('}');
+    indent.writeln('');
+    indent.writeln('- (BOOL)isEqual:(id)object {');
+    indent.writeln('  if (self == object) {');
+    indent.writeln('    return YES;');
+    indent.writeln('  }');
+    indent.writeln('  if (![object isKindOfClass:[FlutterError class]]) {');
+    indent.writeln('    return NO;');
+    indent.writeln('  }');
+    indent.writeln('  FlutterError* other = (FlutterError*)object;');
+    indent.writeln('  return [self.code isEqual:other.code] &&');
+    indent.writeln(
+        '         ((!self.message && !other.message) || [self.message isEqual:other.message]) &&');
+    indent.writeln(
+        '         ((!self.details && !other.details) || [self.details isEqual:other.details]);');
+    indent.writeln('}');
+    indent.writeln('');
+    indent.writeln('- (NSUInteger)hash {');
+    indent.writeln(
+        '  return [self.code hash] ^ [self.message hash] ^ [self.details hash];');
+    indent.writeln('}');
+    indent.writeln('@end');
+    indent.writeln('#endif');
+    indent.writeln('  ');
+  }
 
   @override
   void writeFilePrologue(
@@ -347,6 +437,8 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('// $generatedCodeWarning');
     indent.writeln('// $seeAlsoWarning');
     indent.newln();
+
+    _writeFlutterErrorSource(indent);
   }
 
   @override
@@ -653,7 +745,7 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
 
   void _writeObjcSourceHelperFunctions(Indent indent,
       {required bool hasHostApiMethods}) {
-    indent.writeln('#ifdef __FLUTTER__');
+    
     if (hasHostApiMethods) {
       indent.format('''
 static NSArray *wrapResult(id result, FlutterError *error) {
@@ -665,7 +757,7 @@ static NSArray *wrapResult(id result, FlutterError *error) {
 \treturn @[ result ?: [NSNull null] ];
 }''');
     }
-    indent.writeln('#endif');
+  
     indent.format('''
 static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 \tid result = array[key];

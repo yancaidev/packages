@@ -224,7 +224,10 @@ public class Pigeon {
     static MessageCodec<Object> getCodec() {
       return HelloFlutterApiCodec.INSTANCE;
     }
-    /** say hello to flutter api; */
+    /**
+     * say hello to flutter api;
+     * - hello 参数
+     */
     public void sayHelloToFlutterApi(@NonNull Hello helloArg, Reply<Void> callback) {
       BasicMessageChannel<Object> channel =
           new BasicMessageChannel<>(
