@@ -323,10 +323,10 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     Indent indent,
     Api api,
   ) {
+    indent.writeln('#ifdef __ACError__');
     final String apiName = _className(generatorOptions.prefix, api.name);
     addDocumentationComments(
         indent, api.documentationComments, _docCommentSpec);
-
     indent.writeln('@protocol ${apiName}I');
     for (final Method func in api.methods) {
       final _ObjcPtr returnTypeName =
@@ -828,7 +828,6 @@ static NSArray *wrapResult(id result, FlutterError *error) {
 \t}
 \treturn @[ result ?: [NSNull null] ];
 }''');
-    
     }
 
     indent.format('''
@@ -836,7 +835,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 \tid result = array[key];
 \treturn (result == [NSNull null]) ? nil : result;
 }''');
-indent.writeln('#endif');
+    indent.writeln('#endif');
   }
 
   void _writeObjcSourceDataClassExtension(
