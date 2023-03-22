@@ -8,6 +8,7 @@ import io.flutter.plugin.common.MessageCodec
 import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+
 @Suppress("UNCHECKED_CAST")
 private object HelloHostApiCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
@@ -55,6 +56,25 @@ fun HelloHostApi.Component.setup()
             wrapped = wrapError(exception)
           }
           reply.reply(wrapped)
+        }
+      } else {
+        channel.setMessageHandler(null)
+      }
+    }
+    run {
+      val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.HelloHostApi.doWork", codec)
+      if (api != null) {
+        channel.setMessageHandler { message, reply ->
+          val args = message as List<Any?>
+          val durationArg = args[0].let { if (it is Int) it.toLong() else it as Long }
+          api.doWork(durationArg) { result: Result<Unit> ->
+            val error = result.exceptionOrNull()
+            if (error != null) {
+              reply.reply(wrapError(error))
+            } else {
+              reply.reply(wrapResult(null))
+            }
+          }
         }
       } else {
         channel.setMessageHandler(null)

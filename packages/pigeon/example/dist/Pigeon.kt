@@ -68,5 +68,7 @@ data class Hello (
 interface HelloHostApi {
   /** say hello to host api; */
   fun sayHelloToHostApi(hello: Hello)
+  /** 异步做工 */
+  fun doWork(duration: Long, callback: (Result<Unit>) -> Unit)
 
 }

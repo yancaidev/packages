@@ -2,10 +2,10 @@
 // See also: https://pub.dev/packages/pigeon
 
 
-#ifndef __FLUTTER__
-  @implementation FlutterError
+#ifdef __ACError__
+  @implementation ACError
 + (instancetype)errorWithCode:(NSString*)code message:(NSString*)message details:(id)details {
-  return [[FlutterError alloc] initWithCode:code message:message details:details];
+  return [[ACError alloc] initWithCode:code message:message details:details];
 }
 
 - (instancetype)initWithCode:(NSString*)code message:(NSString*)message details:(id)details {
@@ -22,10 +22,10 @@
   if (self == object) {
     return YES;
   }
-  if (![object isKindOfClass:[FlutterError class]]) {
+  if (![object isKindOfClass:[ACError class]]) {
     return NO;
   }
-  FlutterError* other = (FlutterError*)object;
+  ACError* other = (ACError*)object;
   return [self.code isEqual:other.code] &&
          ((!self.message && !other.message) || [self.message isEqual:other.message]) &&
          ((!self.details && !other.details) || [self.details isEqual:other.details]);
@@ -46,6 +46,7 @@
 #error File requires ARC to be enabled.
 #endif
 
+#ifdef __FLUTTER__
 static NSArray *wrapResult(id result, FlutterError *error) {
   if (error) {
     return @[
@@ -58,6 +59,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   id result = array[key];
   return (result == [NSNull null]) ? nil : result;
 }
+#endif
 
 @interface Hello ()
 + (Hello *)fromList:(NSArray *)list;
@@ -143,13 +145,33 @@ void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<Hell
         binaryMessenger:binaryMessenger
         codec:HelloHostApiGetCodec()];
     if (api) {
-      NSCAssert([api respondsToSelector:@selector(sayHelloToHostApiHello:error:)], @"HelloHostApi api (%@) doesn't respond to @selector(sayHelloToHostApiHello:error:)", api);
+      NSCAssert([api respondsToSelector:@selector(sayHelloToHostApi:error:)], @"HelloHostApi api (%@) doesn't respond to @selector(sayHelloToHostApi:error:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
         NSArray *args = message;
         Hello *arg_hello = GetNullableObjectAtIndex(args, 0);
         FlutterError *error;
-        [api sayHelloToHostApiHello:arg_hello error:&error];
+        [api sayHelloToHostApi:arg_hello error:&error];
         callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// 异步做工
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.HelloHostApi.doWork"
+        binaryMessenger:binaryMessenger
+        codec:HelloHostApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(doWork:completion:)], @"HelloHostApi api (%@) doesn't respond to @selector(doWork:completion:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_duration = GetNullableObjectAtIndex(args, 0);
+        [api doWork:arg_duration completion:^(FlutterError *_Nullable error) {
+          callback(wrapResult(nil, error));
+        }];
       }];
     } else {
       [channel setMessageHandler:nil];

@@ -99,9 +99,9 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.newln();
   }
 
-  void _writeFlutterErrorHeader(Indent indent) {
+  void _writeACErrorHeader(Indent indent) {
     indent.writeln('');
-    indent.writeln('  #ifndef __FLUTTER__');
+    indent.writeln('  #ifdef __ACError__');
     indent.writeln('');
     indent.writeln('    /**');
     indent.writeln(
@@ -109,10 +109,10 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln(
         '     * on a `FlutterMethodChannel`, or an error event on a `FlutterEventChannel`.');
     indent.writeln('     */');
-    indent.writeln('    @interface FlutterError : NSObject');
+    indent.writeln('    @interface ACError : NSObject');
     indent.writeln('    /**');
     indent.writeln(
-        '     * Creates a `FlutterError` with the specified error code, message, and details.');
+        '     * Creates a `ACError` with the specified error code, message, and details.');
     indent.writeln('     *');
     indent.writeln(
         '     * @param code An error code string for programmatic use.');
@@ -150,7 +150,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
       ObjcOptions generatorOptions, Root root, Indent indent) {
     indent.writeln('#import <Foundation/Foundation.h>');
     indent.newln();
-    _writeFlutterErrorHeader(indent);
+    _writeACErrorHeader(indent);
     indent.writeln('@protocol FlutterBinaryMessenger;');
     indent.writeln('@protocol FlutterMessageCodec;');
 
@@ -264,9 +264,17 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
 
   @override
   void writeApis(ObjcOptions generatorOptions, Root root, Indent indent) {
-    indent.writeln('#ifdef __FLUTTER__');
-    super.writeApis(generatorOptions, root, indent);
-    indent.writeln('#endif');
+    // super.writeApis(generatorOptions, root, indent);
+    for (final Api api in root.apis) {
+      if (api.location == ApiLocation.host) {
+        writeHostApi(generatorOptions, root, indent, api);
+        _writeHostApiWithoutFlutter(generatorOptions, root, indent, api);
+      } else if (api.location == ApiLocation.flutter) {
+        indent.writeln('#ifdef __FLUTTER__');
+        writeFlutterApi(generatorOptions, root, indent, api);
+        indent.writeln('#endif');
+      }
+    }
     indent.writeln('NS_ASSUME_NONNULL_END');
   }
 
@@ -309,6 +317,66 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.newln();
   }
 
+  void _writeHostApiWithoutFlutter(
+    ObjcOptions generatorOptions,
+    Root root,
+    Indent indent,
+    Api api,
+  ) {
+    final String apiName = _className(generatorOptions.prefix, api.name);
+    addDocumentationComments(
+        indent, api.documentationComments, _docCommentSpec);
+
+    indent.writeln('@protocol ${apiName}I');
+    for (final Method func in api.methods) {
+      final _ObjcPtr returnTypeName =
+          _objcTypeForDartType(generatorOptions.prefix, func.returnType);
+
+      String? lastArgName;
+      String? lastArgType;
+      String? returnType;
+      if (func.isAsynchronous) {
+        returnType = 'void';
+        if (func.returnType.isVoid) {
+          lastArgType = 'void (^)(ACError *_Nullable)';
+          lastArgName = 'completion';
+        } else {
+          lastArgType =
+              'void (^)(${returnTypeName.ptr}_Nullable, ACError *_Nullable)';
+          lastArgName = 'completion';
+        }
+      } else {
+        returnType = func.returnType.isVoid
+            ? 'void'
+            : 'nullable ${returnTypeName.ptr.trim()}';
+        lastArgType = 'ACError *_Nullable *_Nonnull';
+        lastArgName = 'error';
+      }
+      final List<String> generatorComments = <String>[];
+      if (!func.returnType.isNullable &&
+          !func.returnType.isVoid &&
+          !func.isAsynchronous) {
+        generatorComments.add(' @return `nil` only when `error != nil`.');
+      }
+      addDocumentationComments(
+          indent, func.documentationComments, _docCommentSpec,
+          generatorComments: generatorComments);
+
+      final String signature = _makeObjcSignature(
+        func: func,
+        options: generatorOptions,
+        returnType: returnType,
+        lastArgName: lastArgName,
+        lastArgType: lastArgType,
+        isEnum: (TypeDeclaration t) => isEnum(root, t),
+      );
+      indent.writeln('$signature;');
+    }
+    indent.writeln('@end');
+    indent.newln();
+    indent.writeln('#endif');
+  }
+
   @override
   void writeHostApi(
     ObjcOptions generatorOptions,
@@ -316,11 +384,13 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     Indent indent,
     Api api,
   ) {
+    indent.writeln('#ifdef __FLUTTER__');
     indent.writeln(
         '$_docCommentPrefix The codec used by ${_className(generatorOptions.prefix, api.name)}.');
     indent.writeln(
         'NSObject<FlutterMessageCodec> *${_getCodecGetterName(generatorOptions.prefix, api.name)}(void);');
     indent.newln();
+    indent.writeln('#endif');
     final String apiName = _className(generatorOptions.prefix, api.name);
     addDocumentationComments(
         indent, api.documentationComments, _docCommentSpec);
@@ -372,9 +442,11 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     }
     indent.writeln('@end');
     indent.newln();
+    indent.writeln('#ifdef __FLUTTER__');
     indent.writeln(
         'extern void ${apiName}Setup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<$apiName> *_Nullable api);');
     indent.newln();
+    indent.writeln('#endif');
   }
 }
 
@@ -385,12 +457,12 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
 
   void _writeFlutterErrorSource(Indent indent) {
     indent.writeln('');
-    indent.writeln('#ifndef __FLUTTER__');
-    indent.writeln('  @implementation FlutterError');
+    indent.writeln('#ifdef __ACError__');
+    indent.writeln('  @implementation ACError');
     indent.writeln(
         '+ (instancetype)errorWithCode:(NSString*)code message:(NSString*)message details:(id)details {');
     indent.writeln(
-        '  return [[FlutterError alloc] initWithCode:code message:message details:details];');
+        '  return [[ACError alloc] initWithCode:code message:message details:details];');
     indent.writeln('}');
     indent.writeln('');
     indent.writeln(
@@ -408,10 +480,10 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('  if (self == object) {');
     indent.writeln('    return YES;');
     indent.writeln('  }');
-    indent.writeln('  if (![object isKindOfClass:[FlutterError class]]) {');
+    indent.writeln('  if (![object isKindOfClass:[ACError class]]) {');
     indent.writeln('    return NO;');
     indent.writeln('  }');
-    indent.writeln('  FlutterError* other = (FlutterError*)object;');
+    indent.writeln('  ACError* other = (ACError*)object;');
     indent.writeln('  return [self.code isEqual:other.code] &&');
     indent.writeln(
         '         ((!self.message && !other.message) || [self.message isEqual:other.message]) &&');
@@ -745,7 +817,7 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
 
   void _writeObjcSourceHelperFunctions(Indent indent,
       {required bool hasHostApiMethods}) {
-    
+    indent.writeln('#ifdef __FLUTTER__');
     if (hasHostApiMethods) {
       indent.format('''
 static NSArray *wrapResult(id result, FlutterError *error) {
@@ -756,13 +828,15 @@ static NSArray *wrapResult(id result, FlutterError *error) {
 \t}
 \treturn @[ result ?: [NSNull null] ];
 }''');
+    
     }
-  
+
     indent.format('''
 static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 \tid result = array[key];
 \treturn (result == [NSNull null]) ? nil : result;
 }''');
+indent.writeln('#endif');
   }
 
   void _writeObjcSourceDataClassExtension(
@@ -1135,17 +1209,17 @@ String _makeObjcSignature({
   required Method func,
   required ObjcOptions options,
   required String returnType,
-  required String lastArgType,
-  required String lastArgName,
+  required String? lastArgType,
+  required String? lastArgName,
   required bool Function(TypeDeclaration) isEnum,
   String Function(int, NamedType)? argNameFunc,
 }) {
   argNameFunc = argNameFunc ?? (int _, NamedType e) => e.name;
   final Iterable<String> argNames =
-      followedByOne(indexMap(func.arguments, argNameFunc), lastArgName);
+      followedByOneNotNull(indexMap(func.arguments, argNameFunc), lastArgName);
   final Iterable<String> selectorComponents =
-      _getSelectorComponents(func, lastArgName);
-  final Iterable<String> argTypes = followedByOne(
+      _getSelectorComponents(func, lastArgName ?? '');
+  final Iterable<String> argTypes = followedByOneNotNull(
     func.arguments.map((NamedType arg) {
       if (isEnum(arg.type)) {
         return _className(options.prefix, arg.type.baseName);

@@ -111,6 +111,12 @@ public class Pigeon {
     }
   }
 
+  public interface Result<T> {
+    void success(T result);
+
+    void error(Throwable error);
+  }
+
   private static class HelloHostApiCodec extends StandardMessageCodec {
     public static final HelloHostApiCodec INSTANCE = new HelloHostApiCodec();
 
@@ -145,6 +151,8 @@ public class Pigeon {
   public interface HelloHostApi {
     /** say hello to host api; */
     void sayHelloToHostApi(@NonNull Hello hello);
+    /** 异步做工 */
+    void doWork(@NonNull Long duration, Result<Void> result);
 
     /** The codec used by HelloHostApi. */
     static MessageCodec<Object> getCodec() {
@@ -171,6 +179,35 @@ public class Pigeon {
                   wrapped = wrappedError;
                 }
                 reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.HelloHostApi.doWork", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                Number durationArg = (Number) args.get(0);
+                Result<Void> resultCallback =
+                    new Result<Void>() {
+                      public void success(Void result) {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.doWork((durationArg == null) ? null : durationArg.longValue(), resultCallback);
               });
         } else {
           channel.setMessageHandler(null);

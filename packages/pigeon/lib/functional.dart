@@ -59,6 +59,15 @@ Iterable<T> followedByOne<T>(Iterable<T> ts, T value) sync* {
   yield value;
 }
 
+Iterable<T> followedByOneNotNull<T>(Iterable<T> ts, T? value) sync* {
+  for (final T item in ts) {
+    yield item;
+  }
+  if (value != null) {
+    yield value;
+  }
+}
+
 Iterable<int> _count() sync* {
   int x = 0;
   while (true) {

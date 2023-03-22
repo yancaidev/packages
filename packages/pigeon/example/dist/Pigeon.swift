@@ -51,6 +51,7 @@ struct Hello {
     ]
   }
 }
+
 private class HelloHostApiCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -93,6 +94,8 @@ class HelloHostApiCodec: FlutterStandardMessageCodec {
 protocol HelloHostApi {
   /// say hello to host api;
   func sayHelloToHostApi(hello: Hello) throws
+  /// 异步做工
+  func doWork(duration: Int64, completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -116,6 +119,24 @@ class HelloHostApiSetup {
       }
     } else {
       sayHelloToHostApiChannel.setMessageHandler(nil)
+    }
+    /// 异步做工
+    let doWorkChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.HelloHostApi.doWork", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      doWorkChannel.setMessageHandler { message, reply in
+        let args = message as! [Any]
+        let durationArg = (args[0] is Int) ? Int64(args[0] as! Int) : args[0] as! Int64
+        api.doWork(duration: durationArg) { result in
+          switch result {
+            case .success:
+              reply(wrapResult(nil))
+            case .failure(let error):
+              reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      doWorkChannel.setMessageHandler(nil)
     }
   }
 }
