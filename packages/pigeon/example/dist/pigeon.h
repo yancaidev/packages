@@ -75,6 +75,7 @@ NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
 extern void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<HelloHostApi> *_Nullable api);
 
 #endif
+#ifdef __ACError__
 /// host 平台提供的接口
 @protocol HelloHostApiI
 /// say hello to host api;
