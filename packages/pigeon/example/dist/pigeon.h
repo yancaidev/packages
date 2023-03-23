@@ -90,7 +90,7 @@ extern void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObje
 NSObject<FlutterMessageCodec> *HelloFlutterApiGetCodec(void);
 
 /// flutter 平台提供的接口
-@interface HelloFlutterApi : NSObject
+@interface HelloFlutterApi : NSObjectGetCodec
 - (instancetype)initWithBinaryMessenger:(id<FlutterBinaryMessenger>)binaryMessenger;
 /// say hello to flutter api;
 /// - hello 参数

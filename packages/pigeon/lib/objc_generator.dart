@@ -554,10 +554,12 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('@implementation $className');
     _writeObjcSourceClassInitializer(generatorOptions, root, indent, klass,
         customClassNames, customEnumNames, className);
+    indent.writeln('#ifdef __FLUTTER__');
     writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
         customEnumNames);
     writeClassEncode(generatorOptions, root, indent, klass, customClassNames,
         customEnumNames);
+    indent.writeln('#endif');    
     indent.writeln('@end');
     indent.newln();
   }
