@@ -9,7 +9,7 @@
 通过修改代码模板实现。
 
 - **使用**
-在 iOS 中使用时，如果依赖于 flutter，需要定义 `__FLUTTER__` 宏。如果不依赖于 flutter，需要定义 `__ACError__`。
+在 iOS 中使用时，如果依赖于 flutter，需要在 iOS 的工程中定义 `__FLUTTER__` 宏。
 
 - **示例**
 参照 [example]('./example/generate.sh')

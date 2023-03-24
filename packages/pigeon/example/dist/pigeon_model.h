@@ -3,12 +3,12 @@
 
 #import <Foundation/Foundation.h>
 
+#ifndef __FLUTTER__
+#endif
 
-  #ifdef __ACError__
 
     /**
      * Error object representing an unsuccessful outcome of invoking a method
-     * on a `FlutterMethodChannel`, or an error event on a `FlutterEventChannel`.
      */
     @interface ACError : NSObject
     /**
@@ -38,14 +38,8 @@
     @end
     
     
-        #endif
   
-@protocol FlutterBinaryMessenger;
-@protocol FlutterMessageCodec;
-@class FlutterError;
-@class FlutterStandardTypedData;
-
-NS_ASSUME_NONNULL_BEGIN
+#ifndef __FLUTTER__
 
 @class Hello;
 
@@ -58,24 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy) NSString * name;
 @end
 
-#ifdef __FLUTTER__
-/// The codec used by HelloHostApi.
-NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
-
 #endif
-/// host 平台提供的接口
-@protocol HelloHostApi
-/// say hello to host api;
-- (void)sayHelloToHostApi:(Hello *)hello error:(FlutterError *_Nullable *_Nonnull)error;
-/// 异步做工
-- (void)doWork:(NSNumber *)duration completion:(void (^)(FlutterError *_Nullable))completion;
-@end
-
-#ifdef __FLUTTER__
-extern void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<HelloHostApi> *_Nullable api);
-
-#endif
-#ifdef __ACError__
 /// host 平台提供的接口
 @protocol HelloHostApiI
 /// say hello to host api;
@@ -84,18 +61,4 @@ extern void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObje
 - (void)doWork:(NSNumber *)duration completion:(void (^)(ACError *_Nullable))completion;
 @end
 
-#endif
-#ifdef __FLUTTER__
-/// The codec used by HelloFlutterApi.
-NSObject<FlutterMessageCodec> *HelloFlutterApiGetCodec(void);
-
-/// flutter 平台提供的接口
-@interface HelloFlutterApi : NSObjectGetCodec
-- (instancetype)initWithBinaryMessenger:(id<FlutterBinaryMessenger>)binaryMessenger;
-/// say hello to flutter api;
-/// - hello 参数
-- (void)sayHelloToFlutterApi:(Hello *)hello completion:(void (^)(FlutterError *_Nullable))completion;
-@end
-
-#endif
 NS_ASSUME_NONNULL_END

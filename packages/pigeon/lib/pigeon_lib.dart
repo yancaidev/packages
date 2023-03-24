@@ -502,6 +502,7 @@ class ObjcGeneratorAdapter implements GeneratorAdapter {
       copyrightHeader: options.copyrightHeader != null
           ? _lineReader(options.copyrightHeader!)
           : null,
+      writeModelsOnly: objcOptions.writeModelsOnly,
     ));
     final OutputFileOptions<ObjcOptions> outputFileOptions =
         OutputFileOptions<ObjcOptions>(
@@ -1321,6 +1322,7 @@ ${_argParser.usage}''';
         help: 'Path to generated Objective-C header file (.h).')
     ..addOption('objc_prefix',
         help: 'Prefix for generated Objective-C classes and protocols.')
+    ..addOption('write_models_only', help: 'Write only models to output.')
     ..addOption('copyright_header',
         help:
             'Path to file with copyright header to be prepended to generated code.')
@@ -1340,7 +1342,7 @@ ${_argParser.usage}''';
     // get set in the `run` function to accomodate users that are using the
     // `configurePigeon` function.
     final ArgResults results = _argParser.parse(args);
-
+    // print(results['write_models_only'] == 'true');
     final PigeonOptions opts = PigeonOptions(
       input: results['input'] as String?,
       dartOut: results['dart_out'] as String?,
@@ -1349,6 +1351,7 @@ ${_argParser.usage}''';
       objcSourceOut: results['objc_source_out'] as String?,
       objcOptions: ObjcOptions(
         prefix: results['objc_prefix'] as String?,
+        writeModelsOnly: results['write_models_only'] == 'true',
       ),
       javaOut: results['java_out'] as String?,
       javaOptions: JavaOptions(
@@ -1436,6 +1439,7 @@ ${_argParser.usage}''';
 
     final List<Error> errors = <Error>[];
     errors.addAll(parseResults.errors);
+    // print('解析 ${parseResults.pigeonOptions}');
 
     // Helper to clean up non-Stdout sinks.
     Future<void> releaseSink(IOSink sink) async {
@@ -1477,7 +1481,9 @@ ${_argParser.usage}''';
     if (options.objcHeaderOut != null) {
       options = options.merge(PigeonOptions(
           objcOptions: options.objcOptions!.merge(ObjcOptions(
-              headerIncludePath: path.basename(options.objcHeaderOut!)))));
+              headerIncludePath: path.basename(options.objcHeaderOut!),
+              writeModelsOnly:
+                  options.objcOptions?.writeModelsOnly ?? false))));
     }
 
     if (options.cppHeaderOut != null) {

@@ -18,11 +18,11 @@ const DocumentCommentSpecification _docCommentSpec =
 /// Options that control how Objective-C code will be generated.
 class ObjcOptions {
   /// Parametric constructor for ObjcOptions.
-  const ObjcOptions({
-    this.headerIncludePath,
-    this.prefix,
-    this.copyrightHeader,
-  });
+  const ObjcOptions(
+      {this.headerIncludePath,
+      this.prefix,
+      this.copyrightHeader,
+      this.writeModelsOnly = false});
 
   /// The path to the header that will get placed in the source filed (example:
   /// "foo.h").
@@ -34,6 +34,9 @@ class ObjcOptions {
   /// A copyright header that will get prepended to generated code.
   final Iterable<String>? copyrightHeader;
 
+  /// Only write models without flutter associated code
+  final bool writeModelsOnly;
+
   /// Creates a [ObjcOptions] from a Map representation where:
   /// `x = ObjcOptions.fromMap(x.toMap())`.
   static ObjcOptions fromMap(Map<String, Object> map) {
@@ -43,6 +46,7 @@ class ObjcOptions {
       headerIncludePath: map['header'] as String?,
       prefix: map['prefix'] as String?,
       copyrightHeader: copyrightHeader?.cast<String>(),
+      writeModelsOnly: map['writeModelsOnly'] as bool? ?? false,
     );
   }
 
@@ -53,6 +57,7 @@ class ObjcOptions {
       if (headerIncludePath != null) 'header': headerIncludePath!,
       if (prefix != null) 'prefix': prefix!,
       if (copyrightHeader != null) 'copyrightHeader': copyrightHeader!,
+      if (writeModelsOnly != null) 'writeModelsOnly': writeModelsOnly,
     };
     return result;
   }
@@ -89,6 +94,41 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
   const ObjcHeaderGenerator();
 
   @override
+  void generate(ObjcOptions generatorOptions, Root root, StringSink sink) {
+    print('只输出models ${generatorOptions.writeModelsOnly}');
+    if (generatorOptions.writeModelsOnly) {
+      _writeModelsOnly(generatorOptions, root, sink);
+    } else {
+      super.generate(generatorOptions, root, sink);
+    }
+  }
+
+  /// 只将 models 写入文件，同时如果项目中定义了 __FLUTTER__ 宏，这些 models 将不会生效
+  void _writeModelsOnly(
+      ObjcOptions generatorOptions, Root root, StringSink sink) {
+    final Indent indent = Indent(sink);
+    writeFilePrologue(generatorOptions, root, indent);
+    indent.writeln('#import <Foundation/Foundation.h>');
+    indent.newln();
+    writeOpenNamespace(generatorOptions, root, indent);
+    writeGeneralUtilities(generatorOptions, root, indent);
+    // 避免在 flutter 中重复定义
+    indent.writeln('#ifndef __FLUTTER__');
+    writeEnums(generatorOptions, root, indent);
+    indent.writeln('#endif');
+
+    _writeACErrorSource(indent);
+
+    // 避免在 flutter 中重复定义
+    indent.writeln('#ifndef __FLUTTER__');
+    writeDataClasses(generatorOptions, root, indent);
+    indent.writeln('#endif');
+
+    writeApis(generatorOptions, root, indent);
+    writeCloseNamespace(generatorOptions, root, indent);
+  }
+
+  @override
   void writeFilePrologue(
       ObjcOptions generatorOptions, Root root, Indent indent) {
     if (generatorOptions.copyrightHeader != null) {
@@ -99,15 +139,12 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.newln();
   }
 
-  void _writeACErrorHeader(Indent indent) {
+  void _writeACErrorSource(Indent indent) {
     indent.writeln('');
-    indent.writeln('  #ifdef __ACError__');
     indent.writeln('');
     indent.writeln('    /**');
     indent.writeln(
         '     * Error object representing an unsuccessful outcome of invoking a method');
-    indent.writeln(
-        '     * on a `FlutterMethodChannel`, or an error event on a `FlutterEventChannel`.');
     indent.writeln('     */');
     indent.writeln('    @interface ACError : NSObject');
     indent.writeln('    /**');
@@ -141,7 +178,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('    @end');
     indent.writeln('    ');
     indent.writeln('    ');
-    indent.writeln('        #endif');
     indent.writeln('  ');
   }
 
@@ -150,7 +186,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
       ObjcOptions generatorOptions, Root root, Indent indent) {
     indent.writeln('#import <Foundation/Foundation.h>');
     indent.newln();
-    _writeACErrorHeader(indent);
     indent.writeln('@protocol FlutterBinaryMessenger;');
     indent.writeln('@protocol FlutterMessageCodec;');
 
@@ -267,12 +302,15 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     // super.writeApis(generatorOptions, root, indent);
     for (final Api api in root.apis) {
       if (api.location == ApiLocation.host) {
-        writeHostApi(generatorOptions, root, indent, api);
-        _writeHostApiWithoutFlutter(generatorOptions, root, indent, api);
+        if (generatorOptions.writeModelsOnly) {
+          _writeHostApiWithoutFlutter(generatorOptions, root, indent, api);
+        } else {
+          writeHostApi(generatorOptions, root, indent, api);
+        }
       } else if (api.location == ApiLocation.flutter) {
-        indent.writeln('#ifdef __FLUTTER__');
-        writeFlutterApi(generatorOptions, root, indent, api);
-        indent.writeln('#endif');
+        if (!generatorOptions.writeModelsOnly) {
+          writeFlutterApi(generatorOptions, root, indent, api);
+        }
       }
     }
     indent.writeln('NS_ASSUME_NONNULL_END');
@@ -323,7 +361,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     Indent indent,
     Api api,
   ) {
-    indent.writeln('#ifdef __ACError__');
     final String apiName = _className(generatorOptions.prefix, api.name);
     addDocumentationComments(
         indent, api.documentationComments, _docCommentSpec);
@@ -374,7 +411,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     }
     indent.writeln('@end');
     indent.newln();
-    indent.writeln('#endif');
   }
 
   @override
@@ -455,9 +491,44 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
   /// Constructor.
   const ObjcSourceGenerator();
 
+  @override
+  void generate(ObjcOptions generatorOptions, Root root, StringSink sink) {
+    if (generatorOptions.writeModelsOnly) {
+      _writeModelsOnly(generatorOptions, root, sink);
+    } else {
+      super.generate(generatorOptions, root, sink);
+    }
+  }
+
+  /// 只将 models 写入文件，同时如果项目中定义了 __FLUTTER__ 宏，这些 models 将不会生效
+  void _writeModelsOnly(
+      ObjcOptions generatorOptions, Root root, StringSink sink) {
+    final Indent indent = Indent(sink);
+    writeFilePrologue(generatorOptions, root, indent);
+    indent.writeln('#import <Foundation/Foundation.h>');
+    indent.newln();
+    writeOpenNamespace(generatorOptions, root, indent);
+    writeGeneralUtilities(generatorOptions, root, indent);
+    // 避免在 flutter 中重复定义
+    indent.writeln('#ifndef __FLUTTER__');
+    writeEnums(generatorOptions, root, indent);
+    indent.writeln('#endif');
+
+    _writeFlutterErrorSource(indent);
+
+    // 避免在 flutter 中重复定义
+    indent.writeln('#ifndef __FLUTTER__');
+    writeDataClasses(generatorOptions, root, indent);
+    indent.writeln('#endif');
+
+    // writeApis(generatorOptions, root, indent)
+
+    // writeApis(generatorOptions, root, indent);
+    writeCloseNamespace(generatorOptions, root, indent);
+  }
+
   void _writeFlutterErrorSource(Indent indent) {
     indent.writeln('');
-    indent.writeln('#ifdef __ACError__');
     indent.writeln('  @implementation ACError');
     indent.writeln(
         '+ (instancetype)errorWithCode:(NSString*)code message:(NSString*)message details:(id)details {');
@@ -496,7 +567,6 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
         '  return [self.code hash] ^ [self.message hash] ^ [self.details hash];');
     indent.writeln('}');
     indent.writeln('@end');
-    indent.writeln('#endif');
     indent.writeln('  ');
   }
 
@@ -510,7 +580,7 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('// $seeAlsoWarning');
     indent.newln();
 
-    _writeFlutterErrorSource(indent);
+    // _writeFlutterErrorSource(indent);
   }
 
   @override
@@ -531,14 +601,15 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
   @override
   void writeDataClasses(
       ObjcOptions generatorOptions, Root root, Indent indent) {
-    _writeObjcSourceHelperFunctions(indent,
-        hasHostApiMethods: root.apis.any((Api api) =>
-            api.location == ApiLocation.host && api.methods.isNotEmpty));
-
-    for (final Class klass in root.classes) {
-      _writeObjcSourceDataClassExtension(generatorOptions, indent, klass);
+    if (!generatorOptions.writeModelsOnly) {
+      _writeObjcSourceHelperFunctions(indent,
+          hasHostApiMethods: root.apis.any((Api api) =>
+              api.location == ApiLocation.host && api.methods.isNotEmpty));
+      for (final Class klass in root.classes) {
+        _writeObjcSourceDataClassExtension(generatorOptions, indent, klass);
+      }
+      indent.newln();
     }
-    indent.newln();
     super.writeDataClasses(generatorOptions, root, indent);
   }
 
@@ -554,12 +625,13 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('@implementation $className');
     _writeObjcSourceClassInitializer(generatorOptions, root, indent, klass,
         customClassNames, customEnumNames, className);
-    indent.writeln('#ifdef __FLUTTER__');
-    writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
+    if (!generatorOptions.writeModelsOnly) {
+      writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
         customEnumNames);
     writeClassEncode(generatorOptions, root, indent, klass, customClassNames,
         customEnumNames);
-    indent.writeln('#endif');    
+    }
+    
     indent.writeln('@end');
     indent.newln();
   }
@@ -819,7 +891,6 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
 
   void _writeObjcSourceHelperFunctions(Indent indent,
       {required bool hasHostApiMethods}) {
-    indent.writeln('#ifdef __FLUTTER__');
     if (hasHostApiMethods) {
       indent.format('''
 static NSArray *wrapResult(id result, FlutterError *error) {
@@ -837,7 +908,6 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 \tid result = array[key];
 \treturn (result == [NSNull null]) ? nil : result;
 }''');
-    indent.writeln('#endif');
   }
 
   void _writeObjcSourceDataClassExtension(
