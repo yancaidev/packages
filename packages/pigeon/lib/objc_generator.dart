@@ -110,6 +110,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     writeFilePrologue(generatorOptions, root, indent);
     indent.writeln('#import <Foundation/Foundation.h>');
     indent.newln();
+    indent.writeln('NS_ASSUME_NONNULL_BEGIN');
     writeOpenNamespace(generatorOptions, root, indent);
     writeGeneralUtilities(generatorOptions, root, indent);
     // 避免在 flutter 中重复定义
@@ -506,7 +507,9 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     final Indent indent = Indent(sink);
     writeFilePrologue(generatorOptions, root, indent);
     indent.writeln('#import <Foundation/Foundation.h>');
+    indent.writeln('#import "${generatorOptions.headerIncludePath}"');
     indent.newln();
+    indent.writeln('NS_ASSUME_NONNULL_BEGIN');
     writeOpenNamespace(generatorOptions, root, indent);
     writeGeneralUtilities(generatorOptions, root, indent);
     // 避免在 flutter 中重复定义
@@ -525,13 +528,14 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
 
     // writeApis(generatorOptions, root, indent);
     writeCloseNamespace(generatorOptions, root, indent);
+    indent.writeln('NS_ASSUME_NONNULL_END');
   }
 
   void _writeFlutterErrorSource(Indent indent) {
     indent.writeln('');
     indent.writeln('  @implementation ACError');
     indent.writeln(
-        '+ (instancetype)errorWithCode:(NSString*)code message:(NSString*)message details:(id)details {');
+        '+ (instancetype)errorWithCode:(NSString*)code message:(NSString* _Nullable)message details:(id _Nullable)details {');
     indent.writeln(
         '  return [[ACError alloc] initWithCode:code message:message details:details];');
     indent.writeln('}');

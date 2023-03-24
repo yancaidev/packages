@@ -2,12 +2,14 @@
 // See also: https://pub.dev/packages/pigeon
 
 #import <Foundation/Foundation.h>
+#import "pigeon_model.h"
 
+NS_ASSUME_NONNULL_BEGIN
 #ifndef __FLUTTER__
 #endif
 
   @implementation ACError
-+ (instancetype)errorWithCode:(NSString*)code message:(NSString*)message details:(id)details {
++ (instancetype)errorWithCode:(NSString*)code message:(NSString* _Nullable)message details:(id _Nullable)details {
   return [[ACError alloc] initWithCode:code message:message details:details];
 }
 
@@ -49,3 +51,4 @@
 @end
 
 #endif
+NS_ASSUME_NONNULL_END
