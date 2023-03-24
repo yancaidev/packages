@@ -1,6 +1,7 @@
 #!/bin/bash
 # 获取 dist 目录绝对路径
 DIST_DIR="$(cd "$(dirname "$0")" && pwd)/dist"
+
 # 删除 dist 目录下的所有文件
 rm -rf "${DIST_DIR}/*"
 
@@ -20,11 +21,14 @@ else
   exit 1
 fi
 
+# 如果是 flutter 生成 pigeon 文件，否则 生成 pigeon_model 文件。
 targetname="pigeon"
 if [ "$1" = "true" ]; then
   targetname="pigeon_model"
 fi
+
 echo "Objective-C 导出文件名： ${targetname}"
+
 flutter pub run pigeon \
   --input example/hello.dart \
   --dart_out example/dist/pigeon.dart \
