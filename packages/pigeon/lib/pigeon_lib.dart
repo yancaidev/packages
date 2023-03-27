@@ -633,16 +633,24 @@ class KotlinGeneratorAdapter implements GeneratorAdapter {
       StringSink sink, PigeonOptions options, Root root, FileType fileType) {
     KotlinOptions kotlinOptions =
         options.kotlinOptions ?? const KotlinOptions();
-    kotlinOptions = kotlinOptions.merge(KotlinOptions(
-        errorClassName: kotlinOptions.errorClassName ?? 'FlutterError',
-        copyrightHeader: options.copyrightHeader != null
-            ? _lineReader(options.copyrightHeader!)
-            : null));
+    print('合并前： kotlin: writeModelsOnly ${kotlinOptions.writeModelsOnly}');
+    kotlinOptions = kotlinOptions.merge(
+      KotlinOptions(
+          errorClassName: kotlinOptions.errorClassName ?? 'FlutterError',
+          copyrightHeader: options.copyrightHeader != null
+              ? _lineReader(options.copyrightHeader!)
+              : null,
+          writeModelsOnly: kotlinOptions.writeModelsOnly),
+    );
     kotlinOptions = KotlinOptions(
-        package: kotlinOptions.package,
-        copyrightHeader: kotlinOptions.copyrightHeader,
-        errorClassName: kotlinOptions.errorClassName,
-        output: options.kotlinOut); // 将 kotlin output 传递下去，用于 api 和 models 分离
+      package: kotlinOptions.package,
+      copyrightHeader: kotlinOptions.copyrightHeader,
+      errorClassName: kotlinOptions.errorClassName,
+      output: options.kotlinOut,
+      writeModelsOnly: kotlinOptions.writeModelsOnly,
+    );
+    print('合并后： kotlin: writeModelsOnly ${kotlinOptions.writeModelsOnly}');
+    // 将 kotlin output 传递下去，用于 api 和 models 分离
     const KotlinGenerator generator = KotlinGenerator();
     generator.generate(kotlinOptions, root, sink);
   }
@@ -1363,6 +1371,7 @@ ${_argParser.usage}''';
       kotlinOut: results['experimental_kotlin_out'] as String?,
       kotlinOptions: KotlinOptions(
         package: results['experimental_kotlin_package'] as String?,
+        writeModelsOnly: results['write_models_only'] == 'true',
       ),
       cppHeaderOut: results['experimental_cpp_header_out'] as String?,
       cppSourceOut: results['experimental_cpp_source_out'] as String?,
@@ -1479,11 +1488,15 @@ ${_argParser.usage}''';
     }
 
     if (options.objcHeaderOut != null) {
-      options = options.merge(PigeonOptions(
-          objcOptions: options.objcOptions!.merge(ObjcOptions(
-              headerIncludePath: path.basename(options.objcHeaderOut!),
-              writeModelsOnly:
-                  options.objcOptions?.writeModelsOnly ?? false))));
+      options = options.merge(
+        PigeonOptions(
+          objcOptions: options.objcOptions!.merge(
+            ObjcOptions(
+                headerIncludePath: path.basename(options.objcHeaderOut!),
+                writeModelsOnly: options.objcOptions?.writeModelsOnly ?? false),
+          ),
+        ),
+      );
     }
 
     if (options.cppHeaderOut != null) {

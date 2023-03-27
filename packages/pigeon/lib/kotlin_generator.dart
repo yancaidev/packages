@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'ast.dart';
 import 'functional.dart';
 import 'generator.dart';
@@ -31,7 +29,14 @@ const DocumentCommentSpecification _docCommentSpec =
 class KotlinOptions {
   /// Creates a [KotlinOptions] object
   const KotlinOptions(
-      {this.package, this.copyrightHeader, this.errorClassName, this.output});
+      {this.package,
+      this.copyrightHeader,
+      this.errorClassName,
+      this.output,
+      this.writeModelsOnly});
+
+  /// Whether to write only models or all classes.
+  final bool? writeModelsOnly;
 
   /// The package where the generated class will live.
   final String? package;
@@ -52,6 +57,7 @@ class KotlinOptions {
       package: map['package'] as String?,
       copyrightHeader: map['copyrightHeader'] as Iterable<String>?,
       errorClassName: map['errorClassName'] as String?,
+      writeModelsOnly: map['writeModelsOnly'] as bool?,
     );
   }
 
@@ -62,6 +68,7 @@ class KotlinOptions {
       if (package != null) 'package': package!,
       if (copyrightHeader != null) 'copyrightHeader': copyrightHeader!,
       if (errorClassName != null) 'errorClassName': errorClassName!,
+      if (writeModelsOnly != null) 'writeModelsOnly': writeModelsOnly!,
     };
     return result;
   }
@@ -96,13 +103,16 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
       indent.writeln('package ${generatorOptions.package}');
     }
     indent.newln();
-    indent.writeln('import android.util.Log');
-    // indent.writeln('import io.flutter.plugin.common.BasicMessageChannel');
-    // indent.writeln('import io.flutter.plugin.common.BinaryMessenger');
-    // indent.writeln('import io.flutter.plugin.common.MessageCodec');
-    // indent.writeln('import io.flutter.plugin.common.StandardMessageCodec');
-    // indent.writeln('import java.io.ByteArrayOutputStream');
-    // indent.writeln('import java.nio.ByteBuffer');
+    if (generatorOptions.writeModelsOnly ?? false) {
+    } else {
+      indent.writeln('import android.util.Log');
+      indent.writeln('import io.flutter.plugin.common.BasicMessageChannel');
+      indent.writeln('import io.flutter.plugin.common.BinaryMessenger');
+      indent.writeln('import io.flutter.plugin.common.MessageCodec');
+      indent.writeln('import io.flutter.plugin.common.StandardMessageCodec');
+      indent.writeln('import java.io.ByteArrayOutputStream');
+      indent.writeln('import java.nio.ByteBuffer');
+    }
   }
 
   @override
@@ -162,13 +172,15 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         }
       }
     });
-
-    indent.addScoped(') {', '}', () {
-      writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
-          customEnumNames);
-      writeClassEncode(generatorOptions, root, indent, klass, customClassNames,
-          customEnumNames);
-    });
+    if (generatorOptions.writeModelsOnly ?? false) {
+    } else {
+      indent.addScoped(') {', '}', () {
+        writeClassDecode(generatorOptions, root, indent, klass,
+            customClassNames, customEnumNames);
+        writeClassEncode(generatorOptions, root, indent, klass,
+            customClassNames, customEnumNames);
+      });
+    }
   }
 
   @override
@@ -300,33 +312,27 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     Root root,
     Indent indent,
   ) {
-    final String? out = generatorOptions.output?.replaceAll('.kt', '');
-    final File file = File('${out}_Apis.kt');
-    final IOSink sink = file.openWrite();
-    final Indent apiIndent = Indent(sink);
-    apiIndent.newln();
-    if (generatorOptions.package != null) {
-      apiIndent.writeln('package ${generatorOptions.package}');
+    if (generatorOptions.writeModelsOnly ?? false) {
+      print('仅写入models apis');
+      for (final Api api in root.apis) {
+        if (api.location == ApiLocation.host) {
+          _writeHostApi(indent, api);
+        }
+      }
+      return;
     }
-    apiIndent.newln();
-    apiIndent.writeln('import android.util.Log');
-    apiIndent.writeln('import io.flutter.plugin.common.BasicMessageChannel');
-    apiIndent.writeln('import io.flutter.plugin.common.BinaryMessenger');
-    apiIndent.writeln('import io.flutter.plugin.common.MessageCodec');
-    apiIndent.writeln('import io.flutter.plugin.common.StandardMessageCodec');
-    apiIndent.writeln('import java.io.ByteArrayOutputStream');
-    apiIndent.writeln('import java.nio.ByteBuffer');
+    print('写入所有apis');
     if (root.apis.any((Api api) =>
         api.location == ApiLocation.host &&
         api.methods.any((Method it) => it.isAsynchronous))) {
-      apiIndent.newln();
+      indent.newln();
     }
     for (final Api api in root.apis) {
       if (api.location == ApiLocation.host) {
         _writeHostApi(indent, api);
-        writeHostApi(generatorOptions, root, apiIndent, api);
+        writeHostApi(generatorOptions, root, indent, api);
       } else if (api.location == ApiLocation.flutter) {
-        writeFlutterApi(generatorOptions, root, apiIndent, api);
+        writeFlutterApi(generatorOptions, root, indent, api);
       }
     }
     // super.writeApis(generatorOptions, root, indent);
@@ -707,9 +713,13 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
   @override
   void writeGeneralUtilities(
       KotlinOptions generatorOptions, Root root, Indent indent) {
-    _writeWrapResult(indent);
-    _writeWrapError(generatorOptions, indent);
-    _writeErrorClass(generatorOptions, indent);
+    if (generatorOptions.writeModelsOnly ?? false) {
+      print('只写入models');
+    } else {
+      _writeWrapResult(indent);
+      _writeWrapError(generatorOptions, indent);
+      _writeErrorClass(generatorOptions, indent);
+    }
   }
 }
 

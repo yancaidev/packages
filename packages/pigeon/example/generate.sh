@@ -2,6 +2,8 @@
 # 获取 dist 目录绝对路径
 DIST_DIR="$(cd "$(dirname "$0")" && pwd)/dist"
 
+echo "DIST_DIR: ${DIST_DIR}"
+
 # 删除 dist 目录下的所有文件
 rm -rf "${DIST_DIR}/*"
 
