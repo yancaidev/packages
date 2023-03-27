@@ -172,15 +172,16 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         }
       }
     });
-    if (generatorOptions.writeModelsOnly ?? false) {
-    } else {
-      indent.addScoped(') {', '}', () {
+
+    indent.addScoped(') {', '}', () {
+      if (generatorOptions.writeModelsOnly ?? false) {
+        return;
+      }
         writeClassDecode(generatorOptions, root, indent, klass,
             customClassNames, customEnumNames);
         writeClassEncode(generatorOptions, root, indent, klass,
             customClassNames, customEnumNames);
-      });
-    }
+    });
   }
 
   @override

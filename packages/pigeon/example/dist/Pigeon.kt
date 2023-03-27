@@ -13,6 +13,8 @@ data class Hello (
   /** 名字 */
   val name: String
 
+) {
+}
 /**
  * host 平台提供的接口
  *
