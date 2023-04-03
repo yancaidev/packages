@@ -141,6 +141,9 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
   }
 
   void _writeACErrorSource(Indent indent) {
+    indent.writeln('#ifndef BooleanNumber');
+    indent.writeln('#def BooleanNumber NSNumber');
+    indent.writeln('#endif');
     indent.writeln('');
     indent.writeln('');
     indent.writeln('    /**');
@@ -631,11 +634,11 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
         customClassNames, customEnumNames, className);
     if (!generatorOptions.writeModelsOnly) {
       writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
-        customEnumNames);
-    writeClassEncode(generatorOptions, root, indent, klass, customClassNames,
-        customEnumNames);
+          customEnumNames);
+      writeClassEncode(generatorOptions, root, indent, klass, customClassNames,
+          customEnumNames);
     }
-    
+
     indent.writeln('@end');
     indent.newln();
   }
@@ -1159,7 +1162,7 @@ class _ObjcPtr {
 
 /// Maps between Dart types to ObjC pointer types (ex 'String' => 'NSString *').
 const Map<String, _ObjcPtr> _objcTypeForDartTypeMap = <String, _ObjcPtr>{
-  'bool': _ObjcPtr(baseName: 'NSNumber'),
+  'bool': _ObjcPtr(baseName: 'BooleanNumber'),
   'int': _ObjcPtr(baseName: 'NSNumber'),
   'String': _ObjcPtr(baseName: 'NSString'),
   'double': _ObjcPtr(baseName: 'NSNumber'),
