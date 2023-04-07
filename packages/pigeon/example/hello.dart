@@ -2,18 +2,19 @@ import 'package:pigeon/pigeon.dart';
 
 /// Hello world!
 class Hello {
-  const Hello({required this.name});
+  const Hello({required this.name, required this.deviceType});
 
   /// 名字
   final String name;
+  final DeviceType deviceType;
 }
 
 /// host 平台提供的接口
 @HostApi()
 abstract class HelloHostApi {
   /// say hello to host api;
-  @ObjCSelector('sayHelloToHostApi:')
-  void sayHelloToHostApi(Hello hello);
+  @ObjCSelector('sayHelloToHostApi:deviceTyoe:')
+  void sayHelloToHostApi(Hello hello, DeviceType deviceType);
 
   /// 异步做工
   @async
@@ -29,8 +30,6 @@ abstract class HelloFlutterApi {
   @ObjCSelector('sayHelloToFlutterApi:')
   void sayHelloToFlutterApi(Hello hello);
 }
-
-
 
 enum DeviceType {
   /// 未知

@@ -27,14 +27,18 @@ enum DeviceType {
 class Hello {
   Hello({
     required this.name,
+    required this.deviceType,
   });
 
   /// 名字
   String name;
 
+  DeviceType deviceType;
+
   Object encode() {
     return <Object?>[
       name,
+      deviceType.index,
     ];
   }
 
@@ -42,6 +46,7 @@ class Hello {
     result as List<Object?>;
     return Hello(
       name: result[0]! as String,
+      deviceType: DeviceType.values[result[1]! as int],
     );
   }
 }
@@ -81,12 +86,12 @@ class HelloHostApi {
   static const MessageCodec<Object?> codec = _HelloHostApiCodec();
 
   /// say hello to host api;
-  Future<void> sayHelloToHostApi(Hello arg_hello) async {
+  Future<void> sayHelloToHostApi(Hello arg_hello, DeviceType arg_deviceType) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.HelloHostApi.sayHelloToHostApi', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_hello]) as List<Object?>?;
+        await channel.send(<Object?>[arg_hello, arg_deviceType.raw]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

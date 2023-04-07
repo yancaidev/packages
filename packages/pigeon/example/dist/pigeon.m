@@ -30,15 +30,18 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 @end
 
 @implementation Hello
-+ (instancetype)makeWithName:(NSString *)name {
++ (instancetype)makeWithName:(NSString *)name
+    deviceType:(DeviceType)deviceType {
   Hello* pigeonResult = [[Hello alloc] init];
   pigeonResult.name = name;
+  pigeonResult.deviceType = deviceType;
   return pigeonResult;
 }
 + (Hello *)fromList:(NSArray *)list {
   Hello *pigeonResult = [[Hello alloc] init];
   pigeonResult.name = GetNullableObjectAtIndex(list, 0);
   NSAssert(pigeonResult.name != nil, @"");
+  pigeonResult.deviceType = [GetNullableObjectAtIndex(list, 1) integerValue];
   return pigeonResult;
 }
 + (nullable Hello *)nullableFromList:(NSArray *)list {
@@ -47,6 +50,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList {
   return @[
     (self.name ?: [NSNull null]),
+    @(self.deviceType),
   ];
 }
 @end
@@ -107,17 +111,13 @@ void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<Hell
         binaryMessenger:binaryMessenger
         codec:HelloHostApiGetCodec()];
     if (api) {
-      NSCAssert([api respondsToSelector:@selector(sayHelloToHostApi:f:i:b:d:i2:error:)], @"HelloHostApi api (%@) doesn't respond to @selector(sayHelloToHostApi:f:i:b:d:i2:error:)", api);
+      NSCAssert([api respondsToSelector:@selector(sayHelloToHostApi:deviceTyoe:error:)], @"HelloHostApi api (%@) doesn't respond to @selector(sayHelloToHostApi:deviceTyoe:error:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
         NSArray *args = message;
         Hello *arg_hello = GetNullableObjectAtIndex(args, 0);
-        ACFloatNumber *arg_f = GetNullableObjectAtIndex(args, 1);
-        ACIntNumber *arg_i = GetNullableObjectAtIndex(args, 2);
-        ACByteNumber *arg_b = GetNullableObjectAtIndex(args, 3);
-        ACDoubleNumber *arg_d = GetNullableObjectAtIndex(args, 4);
-        ACLongNumber *arg_i2 = GetNullableObjectAtIndex(args, 5);
+        DeviceType arg_deviceType = [GetNullableObjectAtIndex(args, 1) integerValue];
         FlutterError *error;
-        [api sayHelloToHostApi:arg_hello f:arg_f i:arg_i b:arg_b d:arg_d i2:arg_i2 error:&error];
+        [api sayHelloToHostApi:arg_hello deviceTyoe:arg_deviceType error:&error];
         callback(wrapResult(nil, error));
       }];
     } else {
@@ -135,7 +135,7 @@ void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<Hell
       NSCAssert([api respondsToSelector:@selector(doWork:completion:)], @"HelloHostApi api (%@) doesn't respond to @selector(doWork:completion:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
         NSArray *args = message;
-        ACLongNumber *arg_duration = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_duration = GetNullableObjectAtIndex(args, 0);
         [api doWork:arg_duration completion:^(FlutterError *_Nullable error) {
           callback(wrapResult(nil, error));
         }];

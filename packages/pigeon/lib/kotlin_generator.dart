@@ -177,10 +177,10 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
       if (generatorOptions.writeModelsOnly ?? false) {
         return;
       }
-        writeClassDecode(generatorOptions, root, indent, klass,
-            customClassNames, customEnumNames);
-        writeClassEncode(generatorOptions, root, indent, klass,
-            customClassNames, customEnumNames);
+      writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
+          customEnumNames);
+      writeClassEncode(generatorOptions, root, indent, klass, customClassNames,
+          customEnumNames);
     });
   }
 
@@ -317,7 +317,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
       print('仅写入models apis');
       for (final Api api in root.apis) {
         if (api.location == ApiLocation.host) {
-          _writeHostApi(indent, api);
+          _writeHostApi(generatorOptions, root, indent, api, true);
         }
       }
       return;
@@ -330,7 +330,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     }
     for (final Api api in root.apis) {
       if (api.location == ApiLocation.host) {
-        _writeHostApi(indent, api);
+        _writeHostApi(generatorOptions, root, indent, api, false);
         writeHostApi(generatorOptions, root, indent, api);
       } else if (api.location == ApiLocation.flutter) {
         writeFlutterApi(generatorOptions, root, indent, api);
@@ -432,8 +432,17 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
   }
 
   /// 把 interface 写进 model 里面
-  void _writeHostApi(Indent indent, Api api) {
+  void _writeHostApi(KotlinOptions generatorOptions, Root root, Indent indent,
+      Api api, bool writeModelsOnly) {
+    assert(api.location == ApiLocation.host);
+
     final String apiName = api.name;
+    if (!writeModelsOnly) {
+      final bool isCustomCodec = getCodecClasses(api, root).isNotEmpty;
+      if (isCustomCodec) {
+        _writeCodec(indent, api, root);
+      }
+    }
     const List<String> generatedMessages = <String>[
       ' Generated interface from Pigeon that represents a handler of messages from Flutter.'
     ];
@@ -441,7 +450,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         generatorComments: generatedMessages);
 
     indent.write('interface $apiName ');
-    indent.addScoped('{', '}', () {
+    indent.addScoped('{', writeModelsOnly ? '}' : '', () {
       for (final Method method in api.methods) {
         final List<String> argSignature = <String>[];
         if (method.arguments.isNotEmpty) {
@@ -500,12 +509,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     final String apiName = api.name;
 
     final bool isCustomCodec = getCodecClasses(api, root).isNotEmpty;
-    if (isCustomCodec) {
-      _writeCodec(indent, api, root);
-    }
-
-    indent.writeln('@Suppress("UNCHECKED_CAST")');
-    indent.writeln('fun $apiName.Component.setup()');
+    indent.write('companion object ');
     indent.addScoped('{', '}', () {
       indent.writeln('/** The codec used by $apiName. */');
       indent.write('val codec: MessageCodec<Any?> by lazy ');
@@ -608,6 +612,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
           });
         }
       });
+      indent.add('}');
     });
   }
 

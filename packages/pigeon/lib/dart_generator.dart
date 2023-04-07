@@ -486,7 +486,7 @@ final BinaryMessenger? _binaryMessenger;
             if (root.enums
                 .map((Enum e) => e.name)
                 .contains(type.type.baseName)) {
-              return '$name${type.type.isNullable ? '?' : ''}.index';
+              return '$name${type.type.isNullable ? '?' : ''}.raw';
             } else {
               return name;
             }
