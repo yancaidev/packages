@@ -126,7 +126,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
       enumerate(anEnum.members, (int index, final EnumMember member) {
         addDocumentationComments(
             indent, member.documentationComments, _docCommentSpec);
-        indent.write('${member.name.toUpperCase()}($index)');
+        indent.write('${member.name.toUpperCase()}(${member.value})');
         if (index != anEnum.members.length - 1) {
           indent.addln(',');
         } else {

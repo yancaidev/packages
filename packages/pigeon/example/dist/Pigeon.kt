@@ -4,6 +4,25 @@
 package dev.flutter.pigeon
 
 
+enum class DeviceType(val raw: Int) {
+  /** 未知 */
+  UNKNOWN(1),
+  /** iPhone */
+  IPHONE(200),
+  /** iPad */
+  IPAD(201),
+  /** iPod */
+  IPOD(202),
+  /** 模拟器 */
+  SIMULATOR(203);
+
+  companion object {
+    fun ofRaw(raw: Int): DeviceType? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /**
  * Hello world!
  *

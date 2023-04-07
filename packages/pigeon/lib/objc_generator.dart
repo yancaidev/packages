@@ -211,7 +211,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
             indent, member.documentationComments, _docCommentSpec);
         // Capitalized first letter to ensure Swift compatibility
         indent.writeln(
-            '$enumName${member.name[0].toUpperCase()}${member.name.substring(1)} = $index,');
+            '$enumName${member.name[0].toUpperCase()}${member.name.substring(1)} = ${member.value},');
       });
     });
   }

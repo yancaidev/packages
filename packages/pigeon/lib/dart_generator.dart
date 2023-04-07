@@ -113,8 +113,12 @@ class DartGenerator extends StructuredGenerator<DartOptions> {
       for (final EnumMember member in anEnum.members) {
         addDocumentationComments(
             indent, member.documentationComments, _docCommentSpec);
-        indent.writeln('${member.name},');
+        // 结束符号
+        final String end = member == anEnum.members.last ? ';' : ',';
+        indent.writeln('${member.name}(raw: ${member.value})$end');
       }
+      indent.writeln('const ${anEnum.name}({required this.raw});');
+      indent.writeln('final int raw;');
     });
   }
 

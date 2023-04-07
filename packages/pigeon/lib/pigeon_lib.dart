@@ -41,6 +41,15 @@ class _Asynchronous {
 /// Metadata to annotate a Api method as asynchronous
 const Object async = _Asynchronous();
 
+///  Metadata to annotate a value of a enum member.
+class EnumValue {
+  /// 构造函数
+  const EnumValue(this.value);
+
+  /// enum 值
+  final int value;
+}
+
 /// Metadata annotation used to configure how Pigeon will generate code.
 class ConfigurePigeon {
   /// Constructor for ConfigurePigeon.
@@ -1117,15 +1126,29 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
 
   @override
   Object? visitEnumDeclaration(dart_ast.EnumDeclaration node) {
+    final List<EnumMember> enumMembers = List<EnumMember>.of([]);
+    for (int i = 0; i < node.constants.length; i++) {
+      final dart_ast.EnumConstantDeclaration element = node.constants[i];
+      final int value = _findMetadata(element.metadata, 'EnumValue')
+              ?.arguments
+              ?.arguments
+              .first
+              .asNullable<dart_ast.IntegerLiteral>()
+              ?.value ??
+          i;
+      final dart_ast.EnumConstantDeclaration e = node.constants[i];
+      enumMembers.add(EnumMember(
+        name: e.name.lexeme,
+        value: value,
+        documentationComments:
+            _documentationCommentsParser(e.documentationComment?.tokens),
+      ));
+      print('枚举值为$value');
+    }
+    print('访问枚举值');
     _enums.add(Enum(
       name: node.name.lexeme,
-      members: node.constants
-          .map((dart_ast.EnumConstantDeclaration e) => EnumMember(
-                name: e.name.lexeme,
-                documentationComments: _documentationCommentsParser(
-                    e.documentationComment?.tokens),
-              ))
-          .toList(),
+      members: enumMembers.toList(),
       documentationComments:
           _documentationCommentsParser(node.documentationComment?.tokens),
     ));

@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart' show ListEquality;
 import 'package:meta/meta.dart';
+
 import 'pigeon_lib.dart';
 
 typedef _ListEquals = bool Function(List<Object?>, List<Object?>);
@@ -268,11 +269,15 @@ class EnumMember extends Node {
   /// Parametric constructor for [EnumMember].
   EnumMember({
     required this.name,
+    required this.value,
     this.documentationComments = const <String>[],
   });
 
   /// The name of the enum member.
   final String name;
+
+  /// 枚举值
+  final int value;
 
   /// List of documentation comments, separated by line.
   ///

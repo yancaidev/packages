@@ -8,6 +8,21 @@ import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
 import 'package:flutter/foundation.dart' show ReadBuffer, WriteBuffer;
 import 'package:flutter/services.dart';
 
+enum DeviceType {
+  /// 未知
+  unknown(raw: 1),
+  /// iPhone
+  iPhone(raw: 200),
+  /// iPad
+  iPad(raw: 201),
+  /// iPod
+  iPod(raw: 202),
+  /// 模拟器
+  simulator(raw: 203);
+  const DeviceType({required this.raw});
+  final int raw;
+}
+
 /// Hello world!
 class Hello {
   Hello({

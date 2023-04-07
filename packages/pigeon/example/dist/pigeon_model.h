@@ -5,6 +5,19 @@
 
 NS_ASSUME_NONNULL_BEGIN
 #ifndef __FLUTTER__
+
+typedef NS_ENUM(NSUInteger, DeviceType) {
+  /// 未知
+  DeviceTypeUnknown = 1,
+  /// iPhone
+  DeviceTypeIPhone = 200,
+  /// iPad
+  DeviceTypeIPad = 201,
+  /// iPod
+  DeviceTypeIPod = 202,
+  /// 模拟器
+  DeviceTypeSimulator = 203,
+};
 #endif
 
 

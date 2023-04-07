@@ -29,3 +29,27 @@ abstract class HelloFlutterApi {
   @ObjCSelector('sayHelloToFlutterApi:')
   void sayHelloToFlutterApi(Hello hello);
 }
+
+
+
+enum DeviceType {
+  /// 未知
+  @EnumValue(1)
+  unknown,
+
+  /// iPhone
+  @EnumValue(200)
+  iPhone,
+
+  /// iPad
+  @EnumValue(201)
+  iPad,
+
+  /// iPod
+  @EnumValue(202)
+  iPod,
+
+  /// 模拟器
+  @EnumValue(203)
+  simulator,
+}
