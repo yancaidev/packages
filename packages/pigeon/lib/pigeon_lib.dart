@@ -1497,7 +1497,7 @@ ${_argParser.usage}''';
     final ParseResults parseResults =
         pigeon.parseFile(options.input!, sdkPath: sdkPath);
 
-    if (options.kotlinOptions?.writeModelsOnly ?? false) {
+    if (!(options.kotlinOptions?.writeModelsOnly ?? false)) {
       // 只有在仅仅导出 models 时，才支持 kmm， 无论在哪里设置为了 true，只要这个条件不满足，就不支持 kmm
       parseResults.root.supportKmm = false;
     }
