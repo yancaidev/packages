@@ -33,6 +33,7 @@ class Method extends Node {
     this.isAsynchronous = false,
     this.offset,
     this.objcSelector = '',
+    this.kmmObjcMethodName = '',
     this.swiftFunction = '',
     this.taskQueueType = TaskQueueType.serial,
     this.documentationComments = const <String>[],
@@ -55,6 +56,9 @@ class Method extends Node {
 
   /// An override for the generated objc selector (ex. "divideNumber:by:").
   String objcSelector;
+
+  /// An override for the generated kmm objc method name.
+  String kmmObjcMethodName;
 
   /// An override for the generated swift function signature (ex. "divideNumber(_:by:)").
   String swiftFunction;
@@ -299,6 +303,7 @@ class Root extends Node {
     required this.classes,
     required this.apis,
     required this.enums,
+    this.supportKmm = false,
   });
 
   /// Factory function for generating an empty root, usually used when early errors are encountered.
@@ -314,6 +319,9 @@ class Root extends Node {
 
   /// All of the enums contained in the AST.
   List<Enum> enums;
+
+  /// Whether to support KMM.
+  bool supportKmm;
 
   @override
   String toString() {

@@ -61,18 +61,20 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 @interface Hello : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
-+ (instancetype)makeWithName:(NSString *)name;
++ (instancetype)makeWithName:(NSString *)name
+    deviceType:(DeviceType)deviceType;
 /// 名字
 @property(nonatomic, copy) NSString * name;
+@property(nonatomic, assign) DeviceType deviceType;
 @end
 
 #endif
 /// host 平台提供的接口
 @protocol HelloHostApiI
 /// say hello to host api;
-- (void)sayHelloToHostApi:(Hello *)hello error:(ACError *_Nullable *_Nonnull)error;
+- (void)sayHelloToHostApi:(Hello *)hello deviceType:(DeviceType)deviceType error:(ACError *_Nullable *_Nonnull)error;
 /// 异步做工
-- (void)doWork:(NSNumber *)duration completion:(void (^)(ACError *_Nullable))completion;
+- (void)doWorkInSeconds:(NSNumber *)seconds completion:(void (^)(ACError *_Nullable))completion;
 @end
 
 NS_ASSUME_NONNULL_END

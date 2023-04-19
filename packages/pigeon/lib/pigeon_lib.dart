@@ -50,6 +50,19 @@ class EnumValue {
   final int value;
 }
 
+/// 在 KMM 中 Kotlin 转 Objctive-C 的名称
+///
+/// 在 KMM 中 kotlin 转 Objective-C 的名称非常丑，用这个注解改善
+/// 比如： `setUid(uid: String)` 会被转换为 `setUidUid:(NSString *)uid`
+/// 此时 就可以 使用 `@KMMObjcMethodName("set")` 来改善，转换为 `setUid:(NSString *)uid`
+class KMMObjcMethodName {
+  ///
+  const KMMObjcMethodName(this.name);
+
+  /// 方法名、类名、接口名
+  final String name;
+}
+
 /// Metadata annotation used to configure how Pigeon will generate code.
 class ConfigurePigeon {
   /// Constructor for ConfigurePigeon.
@@ -725,6 +738,9 @@ List<Error> _validateAst(Root root, String source) {
   }
   for (final Api api in root.apis) {
     for (final Method method in api.methods) {
+      if (!root.supportKmm && method.kmmObjcMethodName.isNotEmpty) {
+        root.supportKmm = true;
+      }
       if (api.location == ApiLocation.flutter &&
           method.arguments.isNotEmpty &&
           method.arguments.any((NamedType element) =>
@@ -862,7 +878,9 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
             lineNumber: lineNumber));
       }
     }
-
+    if (completeRoot.enums.isNotEmpty) {
+      completeRoot.supportKmm = true;
+    }
     return ParseResults(
       root: totalErrors.isEmpty
           ? completeRoot
@@ -1065,6 +1083,14 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
     final List<NamedType> arguments =
         parameters.parameters.map(formalParameterToField).toList();
     final bool isAsynchronous = _hasMetadata(node.metadata, 'async');
+    final String kmmObjcMethodName =
+        _findMetadata(node.metadata, 'KMMObjcMethodName')
+                ?.arguments
+                ?.arguments
+                .first
+                .asNullable<dart_ast.SimpleStringLiteral>()
+                ?.value ??
+            '';
     final String objcSelector = _findMetadata(node.metadata, 'ObjCSelector')
             ?.arguments
             ?.arguments
@@ -1107,6 +1133,7 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
           arguments: arguments,
           isAsynchronous: isAsynchronous,
           objcSelector: objcSelector,
+          kmmObjcMethodName: kmmObjcMethodName,
           swiftFunction: swiftFunction,
           offset: node.offset,
           taskQueueType: taskQueueType,
@@ -1448,6 +1475,7 @@ ${_argParser.usage}''';
     if (options.debugGenerators ?? false) {
       generator_tools.debugGenerators = true;
     }
+
     final List<GeneratorAdapter> safeGeneratorAdapters = adapters ??
         <GeneratorAdapter>[
           DartGeneratorAdapter(),
@@ -1468,6 +1496,11 @@ ${_argParser.usage}''';
 
     final ParseResults parseResults =
         pigeon.parseFile(options.input!, sdkPath: sdkPath);
+
+    if (options.kotlinOptions?.writeModelsOnly ?? false) {
+      // 只有在仅仅导出 models 时，才支持 kmm， 无论在哪里设置为了 true，只要这个条件不满足，就不支持 kmm
+      parseResults.root.supportKmm = false;
+    }
 
     final List<Error> errors = <Error>[];
     errors.addAll(parseResults.errors);

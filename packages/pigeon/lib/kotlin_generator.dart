@@ -99,8 +99,15 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
   void writeFileImports(
       KotlinOptions generatorOptions, Root root, Indent indent) {
     indent.newln();
+    if (root.supportKmm) {
+      indent.writeln('@file:OptIn(ExperimentalObjCName::class)');
+    }
     if (generatorOptions.package != null) {
       indent.writeln('package ${generatorOptions.package}');
+    }
+    if (root.supportKmm) {
+      indent.writeln('import kotlin.experimental.ExperimentalObjCName');
+      indent.writeln('import kotlin.native.ObjCName');
     }
     indent.newln();
     if (generatorOptions.writeModelsOnly ?? false) {
@@ -137,6 +144,9 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
       indent.newln();
       indent.write('companion object ');
       indent.addScoped('{', '}', () {
+        if (root.supportKmm) {
+          indent.writeln('@ObjCName("of") ');
+        }
         indent.write('fun ofRaw(raw: Int): ${anEnum.name}? ');
         indent.addScoped('{', '}', () {
           indent.writeln('return values().firstOrNull { it.raw == raw }');
@@ -390,7 +400,6 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
 
         addDocumentationComments(
             indent, func.documentationComments, _docCommentSpec);
-
         if (func.arguments.isEmpty) {
           indent.write('fun ${func.name}(callback: ($returnType) -> Unit) ');
           sendArgument = 'null';
@@ -473,6 +482,9 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         addDocumentationComments(
             indent, method.documentationComments, _docCommentSpec);
 
+        if (root.supportKmm && method.kmmObjcMethodName.isNotEmpty) {
+          indent.writeln('@ObjCName("${method.kmmObjcMethodName}")');
+        }
         if (method.isAsynchronous) {
           argSignature.add('callback: (Result<$resultType>) -> Unit');
           indent.writeln('fun ${method.name}(${argSignature.join(', ')})');

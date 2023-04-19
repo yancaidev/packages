@@ -109,12 +109,12 @@ class HelloHostApi {
   }
 
   /// 异步做工
-  Future<void> doWork(int arg_duration) async {
+  Future<void> doWorkInSeconds(int arg_seconds) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.HelloHostApi.doWork', codec,
+        'dev.flutter.pigeon.HelloHostApi.doWorkInSeconds', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_duration]) as List<Object?>?;
+        await channel.send(<Object?>[arg_seconds]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -163,6 +163,8 @@ abstract class HelloFlutterApi {
   /// - hello 参数
   void sayHelloToFlutterApi(Hello hello);
 
+  void sayToFlutterApi(Hello hello);
+
   static void setup(HelloFlutterApi? api, {BinaryMessenger? binaryMessenger}) {
     {
       final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
@@ -179,6 +181,25 @@ abstract class HelloFlutterApi {
           assert(arg_hello != null,
               'Argument for dev.flutter.pigeon.HelloFlutterApi.sayHelloToFlutterApi was null, expected non-null Hello.');
           api.sayHelloToFlutterApi(arg_hello!);
+          return;
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.HelloFlutterApi.sayToFlutterApi', codec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        channel.setMessageHandler(null);
+      } else {
+        channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.HelloFlutterApi.sayToFlutterApi was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final Hello? arg_hello = (args[0] as Hello?);
+          assert(arg_hello != null,
+              'Argument for dev.flutter.pigeon.HelloFlutterApi.sayToFlutterApi was null, expected non-null Hello.');
+          api.sayToFlutterApi(arg_hello!);
           return;
         });
       }

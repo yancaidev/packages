@@ -14,7 +14,9 @@ abstract class ACCore {
   ///   - privateKey 私钥
   ///   - licenseKey 序列号
   @async
-  void authorize(String licenseKey, String privateKey);
+  @KMMObjcMethodName('authorizeWith')
+  @ObjCSelector('authorizeWithLicenceKey:privateKey:')
+  void authorizeWithLicenceKey(String licenseKey, String privateKey);
 
   /// 获取 Ansjer Camera SDK 版本
   String getSDKVersion();
@@ -1268,7 +1270,6 @@ class ChannelStream {
 }
 
 class SearchLanInfo {
-
   SearchLanInfo({this.uid, this.ip, this.port});
   final List<int?>? uid;
   final List<int?>? ip;
@@ -1301,7 +1302,6 @@ class GetEventsResponse {
 
 /// 相机事件
 class Event {
-
   const Event(this.eventType, this.status, this.time);
   final int eventType;
   final int status;
@@ -1310,7 +1310,6 @@ class Event {
 
 /// 音频格式信息
 class AudioFormatInfo {
-
   const AudioFormatInfo(this.channel, this.codec, this.sampleRate,
       this.dataBits, this.channels, this.servChannel);
   final int channel;
@@ -1324,14 +1323,12 @@ class AudioFormatInfo {
 }
 
 class ChannelNameInfo {
-
   const ChannelNameInfo(this.name, this.index);
   final String name;
   final int index;
 }
 
 class VideoFrameInfo {
-
   const VideoFrameInfo(this.videoCodec, this.channel, this.onlineNum,
       this.timestamp, this.videoWidth, this.videoHeight);
   final int videoCodec;
@@ -1355,7 +1352,6 @@ class ACDateTime {
 }
 
 class ACTime {
-
   ACTime({required this.hour, required this.minute, required this.second});
   final int hour;
   final int minute;
@@ -1371,7 +1367,6 @@ class ACTime {
 /// @constructor
 /// @todo 确认每个参数表达的含义
 class PrivacyOcclusionArea {
-
   PrivacyOcclusionArea({
     required this.x,
     required this.y,
@@ -1421,7 +1416,6 @@ class MotionDetectArea {
 
 /// 低功耗设备提醒配置信息
 class LowPowerNotificationConfig {
-
   LowPowerNotificationConfig(
       {required this.isPowerLowNotifyOn,
       required this.triggerPercent,
@@ -1447,13 +1441,13 @@ class LowPowerNotificationConfig {
 
 /// IPC 告警配置信息
 class IPCAlarmConfig {
-
   IPCAlarmConfig(
       {required this.alarmType,
       required this.alarmLevel,
       required this.isManualAlarmOn,
       required this.nightLightMode,
       required this.audioVolume});
+
   /// 告警类型 0:人形，1: 移动侦测
   final int alarmType;
 
@@ -1471,7 +1465,6 @@ class IPCAlarmConfig {
 }
 
 class GetVRAlarmConfigResp {
-
   /// 获取视频录像告警配置信息的响应模型
   GetVRAlarmConfigResp({
     required this.cameraIndex,
@@ -1530,8 +1523,8 @@ class GetTimeConfigResp {}
 
 /// 摄像机名称
 class CameraName {
-
   CameraName({required this.name, required this.cameraIndex});
+
   /// 名称
   final int name;
 
@@ -1541,13 +1534,13 @@ class CameraName {
 
 /// 支持的报警类型信息
 class SupportedAlarmType {
-
   SupportedAlarmType(
       {required this.supportHuman,
       required this.supportFace,
       required this.supportCar,
       required this.supportPet,
       required this.supportSoundLight});
+
   /// 是否支持人形检测 0 不支持 1支持
   final bool supportHuman;
 
@@ -1566,7 +1559,6 @@ class SupportedAlarmType {
 
 /// AI 算法开关状态
 class AIAlgorithmStatus {
-
   AIAlgorithmStatus(
       {required this.isMotionOn,
       required this.isHumanoidOn,
@@ -1574,6 +1566,7 @@ class AIAlgorithmStatus {
       required this.isCarOn,
       required this.isPetOn,
       required this.soundLightMode});
+
   /// 移动侦测算法状态
   final bool isMotionOn;
 

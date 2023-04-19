@@ -141,15 +141,6 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
   }
 
   void _writeACErrorSource(Indent indent) {
-    // indent.writeln('#ifndef BooleanNumber');
-    // indent.writeln('#define BooleanNumber NSNumber');
-    // indent.writeln('#endif');
-    // indent.writeln('#ifndef LongNumber');
-    // indent.writeln('#define LongNumber NSNumber');
-    // indent.writeln('#endif');
-    // indent.writeln('#ifndef DoubleNumber');
-    // indent.writeln('#define DoubleNumber NSNumber');
-    // indent.writeln('#endif');
     indent.writeln('');
     indent.writeln('');
     indent.writeln('    /**');

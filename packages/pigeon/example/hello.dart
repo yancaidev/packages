@@ -13,13 +13,14 @@ class Hello {
 @HostApi()
 abstract class HelloHostApi {
   /// say hello to host api;
-  @ObjCSelector('sayHelloToHostApi:deviceTyoe:')
+  @ObjCSelector('sayHelloToHostApi:deviceType:')
+  @KMMObjcMethodName('say')
   void sayHelloToHostApi(Hello hello, DeviceType deviceType);
 
   /// 异步做工
   @async
-  @ObjCSelector('doWork:')
-  void doWork(int duration);
+  @ObjCSelector('doWorkInSeconds:')
+  void doWorkInSeconds(int seconds);
 }
 
 /// flutter 平台提供的接口
@@ -29,6 +30,8 @@ abstract class HelloFlutterApi {
   /// - hello 参数
   @ObjCSelector('sayHelloToFlutterApi:')
   void sayHelloToFlutterApi(Hello hello);
+  @KMMObjcMethodName('sayToFlutterApiWith')
+  void sayToFlutterApi(Hello hello);
 }
 
 enum DeviceType {
