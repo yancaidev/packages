@@ -9,7 +9,7 @@ class Hello {
   });
 
   /// 名字
-  final String name;
+  final String? name;
   final DeviceType deviceType;
   final int age;
 }

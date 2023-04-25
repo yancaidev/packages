@@ -26,13 +26,13 @@ enum DeviceType {
 /// Hello world!
 class Hello {
   Hello({
-    required this.name,
+    this.name,
     required this.deviceType,
     required this.age,
   });
 
   /// 名字
-  String name;
+  String? name;
 
   DeviceType deviceType;
 
@@ -49,7 +49,7 @@ class Hello {
   static Hello decode(Object result) {
     result as List<Object?>;
     return Hello(
-      name: result[0]! as String,
+      name: result[0] as String?,
       deviceType: DeviceType.values[result[1]! as int],
       age: result[2]! as int,
     );

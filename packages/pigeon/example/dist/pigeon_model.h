@@ -69,14 +69,14 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 @interface Hello : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
-+ (instancetype)makeWithName:(NSString *)name
++ (instancetype)makeWithName:(nullable NSString *)name
     deviceType:(DeviceType)deviceType
     age:(NSIntNumber *)age;
-+ (instancetype)create:(NSString *)name
++ (instancetype)create:(nullable NSString *)name
     deviceType:(DeviceType)deviceType
     age:(NSIntNumber *)age;
 /// 名字
-@property(nonatomic, copy) NSString * name;
+@property(nonatomic, copy, nullable) NSString * name;
 @property(nonatomic, assign) DeviceType deviceType;
 @property(nonatomic, strong) NSIntNumber * age;
 @end

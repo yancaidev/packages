@@ -163,8 +163,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     if (generatorOptions.output == null) {
       return;
     }
-    final String path =
-        generatorOptions.output!.replaceFirst('.kt', '-KMM.kt');
+    final String path = generatorOptions.output!.replaceFirst('.kt', '-KMM.kt');
     print('Kotlin output: ${generatorOptions.output} $path');
     if (kmmModelIndent == null) {
       final File file = File(path);
@@ -181,7 +180,9 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     indent.write('expect class ${klass.name} ');
     indent.addScoped('{', '}', () {
       for (final NamedType element in getFieldsInSerializationOrder(klass)) {
-        _writeClassField(indent, element);
+        final NamedType field = element;
+        indent.write(
+            'var ${field.name}: ${_nullsafeKotlinTypeForDartType(field.type)}');
         indent.newln();
       }
       indent.newln();

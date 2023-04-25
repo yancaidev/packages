@@ -34,7 +34,7 @@ enum class DeviceType(val raw: Int) {
  */
 class Hello (
   /** 名字 */
-  var name: String,
+  var name: String? = null,
   var deviceType: DeviceType,
   var age: Long
 
