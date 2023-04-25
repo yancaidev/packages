@@ -44,10 +44,21 @@ NS_ASSUME_NONNULL_BEGIN
 #ifndef __FLUTTER__
 @implementation Hello
 + (instancetype)makeWithName:(NSString *)name
-    deviceType:(DeviceType)deviceType {
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age {
   Hello* pigeonResult = [[Hello alloc] init];
   pigeonResult.name = name;
   pigeonResult.deviceType = deviceType;
+  pigeonResult.age = age;
+  return pigeonResult;
+}
++ (instancetype)create:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age {
+  Hello* pigeonResult = [[Hello alloc] init];
+  pigeonResult.name = name;
+  pigeonResult.deviceType = deviceType;
+  pigeonResult.age = age;
   return pigeonResult;
 }
 @end

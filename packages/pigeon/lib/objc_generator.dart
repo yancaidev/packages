@@ -103,6 +103,21 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     }
   }
 
+  void _remappingTypes(Indent indent) {
+    indent.writeln('NS_ASSUME_NONNULL_BEGIN');
+    indent.writeln('#define NSIntNumber NSNumber');
+    indent.writeln('#define NSBoolNumber NSNumber');
+    indent.writeln('#define NSDoubleNumber NSNumber');
+    indent.writeln(
+        '#define FlutterStandardTypedDataUint8List FlutterStandardTypedData');
+    indent.writeln(
+        '#define FlutterStandardTypedDataInt32List FlutterStandardTypedData');
+    indent.writeln(
+        '#define FlutterStandardTypedDataInt64List FlutterStandardTypedData');
+    indent.writeln(
+        '#define FlutterStandardTypedDataFloat64List FlutterStandardTypedData');
+  }
+
   /// 只将 models 写入文件，同时如果项目中定义了 __FLUTTER__ 宏，这些 models 将不会生效
   void _writeModelsOnly(
       ObjcOptions generatorOptions, Root root, StringSink sink) {
@@ -110,7 +125,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
     writeFilePrologue(generatorOptions, root, indent);
     indent.writeln('#import <Foundation/Foundation.h>');
     indent.newln();
-    indent.writeln('NS_ASSUME_NONNULL_BEGIN');
+    _remappingTypes(indent);
     writeOpenNamespace(generatorOptions, root, indent);
     writeGeneralUtilities(generatorOptions, root, indent);
     // 避免在 flutter 中重复定义
@@ -187,6 +202,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
       ObjcOptions generatorOptions, Root root, Indent indent) {
     indent.writeln('#import <Foundation/Foundation.h>');
     indent.newln();
+    _remappingTypes(indent);
     indent.writeln('@protocol FlutterBinaryMessenger;');
     indent.writeln('@protocol FlutterMessageCodec;');
 
@@ -249,6 +265,9 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
         indent.writeln('- (instancetype)init NS_UNAVAILABLE;');
       }
       _writeObjcSourceClassInitializerDeclaration(
+          indent, klass, classes, enums, prefix);
+      indent.addln(';');
+      _writeObjcSourceClassCreateInitializerDeclaration(
           indent, klass, classes, enums, prefix);
       indent.addln(';');
     }
@@ -629,6 +648,8 @@ class ObjcSourceGenerator extends StructuredGenerator<ObjcOptions> {
     indent.writeln('@implementation $className');
     _writeObjcSourceClassInitializer(generatorOptions, root, indent, klass,
         customClassNames, customEnumNames, className);
+    _writeObjcSourceClassCreateInitializer(generatorOptions, root, indent,
+        klass, customClassNames, customEnumNames, className);
     if (!generatorOptions.writeModelsOnly) {
       writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
           customEnumNames);
@@ -947,6 +968,27 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     });
   }
 
+  void _writeObjcSourceClassCreateInitializer(
+    ObjcOptions languageOptions,
+    Root root,
+    Indent indent,
+    Class klass,
+    Set<String> customClassNames,
+    Set<String> customEnumNames,
+    String className,
+  ) {
+    _writeObjcSourceClassCreateInitializerDeclaration(
+        indent, klass, root.classes, root.enums, languageOptions.prefix);
+    indent.writeScoped(' {', '}', () {
+      const String result = 'pigeonResult';
+      indent.writeln('$className* $result = [[$className alloc] init];');
+      for (final NamedType field in getFieldsInSerializationOrder(klass)) {
+        indent.writeln('$result.${field.name} = ${field.name};');
+      }
+      indent.writeln('return $result;');
+    });
+  }
+
   /// Writes the codec that will be used for encoding messages for the [api].
   ///
   /// Example:
@@ -1133,6 +1175,39 @@ void _writeObjcSourceClassInitializerDeclaration(Indent indent, Class klass,
   });
 }
 
+/// Writes the method declaration for the initializer.
+///
+/// Example '+ (instancetype)create:(NSString *)foo'
+void _writeObjcSourceClassCreateInitializerDeclaration(Indent indent,
+    Class klass, List<Class> classes, List<Enum> enums, String? prefix) {
+  final List<String> customEnumNames = enums.map((Enum x) => x.name).toList();
+  indent.write('+ (instancetype)create');
+  bool isFirst = true;
+  indent.nest(2, () {
+    for (final NamedType field in getFieldsInSerializationOrder(klass)) {
+      final String label = isFirst ? '' : field.name;
+      final void Function(String) printer = isFirst
+          ? indent.add
+          : (String x) {
+              indent.newln();
+              indent.write(x);
+            };
+      isFirst = false;
+      final HostDatatype hostDatatype = getFieldHostDatatype(
+          field,
+          classes,
+          enums,
+          (TypeDeclaration x) => _objcTypePtrForPrimitiveDartType(prefix, x),
+          customResolver: customEnumNames.contains(field.type.baseName)
+              ? (String x) => _className(prefix, x)
+              : (String x) => '${_className(prefix, x)} *');
+      final String nullable =
+          _isNullable(hostDatatype, field.type) ? 'nullable ' : '';
+      printer('$label:($nullable${hostDatatype.datatype})${field.name}');
+    }
+  });
+}
+
 /// Calculates the ObjC class name, possibly prefixed.
 String _className(String? prefix, String className) {
   if (prefix != null) {
@@ -1159,14 +1234,14 @@ class _ObjcPtr {
 
 /// Maps between Dart types to ObjC pointer types (ex 'String' => 'NSString *').
 const Map<String, _ObjcPtr> _objcTypeForDartTypeMap = <String, _ObjcPtr>{
-  'bool': _ObjcPtr(baseName: 'NSNumber'),
-  'int': _ObjcPtr(baseName: 'NSNumber'),
+  'bool': _ObjcPtr(baseName: 'NSBoolNumber'),
+  'int': _ObjcPtr(baseName: 'NSIntNumber'),
   'String': _ObjcPtr(baseName: 'NSString'),
-  'double': _ObjcPtr(baseName: 'NSNumber'),
-  'Uint8List': _ObjcPtr(baseName: 'FlutterStandardTypedData'),
-  'Int32List': _ObjcPtr(baseName: 'FlutterStandardTypedData'),
-  'Int64List': _ObjcPtr(baseName: 'FlutterStandardTypedData'),
-  'Float64List': _ObjcPtr(baseName: 'FlutterStandardTypedData'),
+  'double': _ObjcPtr(baseName: 'NSDoubleNumber'),
+  'Uint8List': _ObjcPtr(baseName: 'FlutterStandardTypedDataUint8List'),
+  'Int32List': _ObjcPtr(baseName: 'FlutterStandardTypedDataInt32List'),
+  'Int64List': _ObjcPtr(baseName: 'FlutterStandardTypedDataInt64List'),
+  'Float64List': _ObjcPtr(baseName: 'FlutterStandardTypedDataFloat64List'),
   'List': _ObjcPtr(baseName: 'NSArray'),
   'Map': _ObjcPtr(baseName: 'NSDictionary'),
   'Object': _ObjcPtr(baseName: 'id'),
@@ -1336,6 +1411,7 @@ String _listGetter(Set<String> customClassNames, String list, NamedType field,
 
 String _arrayValue(Set<String> customClassNames, Set<String> customEnumNames,
     NamedType field) {
+  print('====== field: ${field.name} ${field.type.baseName}}');
   if (customClassNames.contains(field.type.baseName)) {
     return '(self.${field.name} ? [self.${field.name} toList] : [NSNull null])';
   } else if (customEnumNames.contains(field.type.baseName)) {

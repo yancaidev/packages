@@ -37,6 +37,7 @@ abstract class ACCam {
   /// 设置 uid
   /// @param uid 设备 uid
   @ObjCSelector('setUid:')
+  @KMMObjcMethodName('set')
   void setUid(String uid);
 
   /// 设置 AP 的 ssid
@@ -66,44 +67,52 @@ abstract class ACCam {
   /// 断开 av 通道
   /// @param channel 通道号
   @ObjCSelector('disconnectChannel:')
+  @KMMObjcMethodName('disconnect')
   void disconnectChannel(int channel);
 
   /// 通过 av通道 获取视频画面，内部已做解码
   /// @param channel 通道号
-  @ObjCSelector('startReceivingVideoThroughChannel:')
+  @ObjCSelector('startReceivingVideo:')
+  @KMMObjcMethodName('startReceivingVideoBy')
   void startReceivingVideo(int channel);
 
   /// 停止从 av 通道获取视频数据
   /// @param channel 通道号
-  @ObjCSelector('stopReceivingVideoThroughChannel:')
+  @ObjCSelector('stopReceivingVideo:')
+  @KMMObjcMethodName('stopReceivingVideoBy')
   void stopReceivingVideo(int channel);
 
-  /// 通过 av通道 获取视频原始数据，内部未解码，需要自己解码
-  /// @param channel 通道号
-  @ObjCSelector('startReceivingRawVideoThroughChannel:')
-  void startReceivingRawVideo(int channel);
+  // /// 通过 av通道 获取视频原始数据，内部未解码，需要自己解码
+  // /// @param channel 通道号
+  // @ObjCSelector('startReceivingRawVideo:')
+  // @KMMObjcMethodName('startReceivingRawVideo')
+  // void startReceivingRawVideo(int channel);
 
   /// 通过 av 通道获取音频数据， 内部以解码
   /// @param channel 通道号
-  @ObjCSelector('startReceivingSoundThroughChannel:')
+  @ObjCSelector('startReceivingSound:')
+  @KMMObjcMethodName('startReceivingSoundBy')
   void startReceivingSound(int channel);
 
   /// 停止获取音频数据
   /// @param channel 通道号
-  @ObjCSelector('stopReceivingSoundThroughChannel:')
+  @ObjCSelector('stopReceivingSound:')
+  @KMMObjcMethodName('stopReceivingSoundBy')
   void stopReceivingSound(int channel);
 
   /// 通过 av 通道截图，保存到本地，并控制是否保存到相册
   /// @param channel 通道号
   /// @param path 截图保存路径
   /// @param saveToGallery 是否保存到相册
-  @ObjCSelector('takeSnapshotThrougChannel:to:andSaveToGallery:')
+  @ObjCSelector('takeSnapshot:path:saveToGallery:')
+  @KMMObjcMethodName('takeSnapshotBy')
   void takeSnapshot(int channel, String path, bool saveToGallery);
 
   /// 通过 av 通道录制视频
   /// @param channel 通道号
   /// @param limitSeconds 视频最长秒数
-  @ObjCSelector('recordVideoThroughChannel:limit:')
+  @ObjCSelector('recordVideo:limit:')
+  @KMMObjcMethodName('recordVideoBy')
   void recordVideo(int channel, int limitSeconds);
 }
 
@@ -115,7 +124,8 @@ abstract class ACCamCmd {
   /// @param status 事件状态
   /// @param startTime 起始时间
   /// @param endTime 截止时间
-  @ObjCSelector('getEventsThroughChannel:withEventType:status:from:to:')
+  @ObjCSelector('getEventsByChannel:eventType:status:startTime:endTime:')
+  @KMMObjcMethodName('getEventsBy')
   void getEvents(int channel, int eventType, int status, ACDateTime startTime,
       ACDateTime endTime);
 
@@ -125,6 +135,7 @@ abstract class ACCamCmd {
   /// @param height Int 竖向选择区域的格子数量
   /// @param bits Array<Array<Boolean>> 所有格子的选中状态，选中为 true， 否则为 false
   @ObjCSelector('setMotionDetectArea:width:height:bits:')
+
   void setMotionDetectArea(
       int channel, int width, int height, List<List<bool>> bits);
 

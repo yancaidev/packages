@@ -11,7 +11,12 @@ NS_ASSUME_NONNULL_BEGIN
 #define FlutterStandardTypedDataInt32List FlutterStandardTypedData
 #define FlutterStandardTypedDataInt64List FlutterStandardTypedData
 #define FlutterStandardTypedDataFloat64List FlutterStandardTypedData
-#ifndef __FLUTTER__
+@protocol FlutterBinaryMessenger;
+@protocol FlutterMessageCodec;
+@class FlutterError;
+@class FlutterStandardTypedData;
+
+NS_ASSUME_NONNULL_BEGIN
 
 typedef NS_ENUM(NSUInteger, DeviceType) {
   /// 未知
@@ -25,42 +30,6 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
   /// 模拟器
   DeviceTypeSimulator = 203,
 };
-#endif
-
-
-    /**
-     * Error object representing an unsuccessful outcome of invoking a method
-     */
-    @interface ACError : NSObject
-    /**
-     * Creates a `ACError` with the specified error code, message, and details.
-     *
-     * @param code An error code string for programmatic use.
-     * @param message A human-readable error message.
-     * @param details Custom error details.
-     */
-    + (instancetype)errorWithCode:(NSString*)code
-                          message:(NSString* _Nullable)message
-                          details:(id _Nullable)details;
-    /**
-     The error code.
-     */
-    @property(readonly, nonatomic) NSString* code;
-    
-    /**
-     The error message.
-     */
-    @property(readonly, nonatomic, nullable) NSString* message;
-    
-    /**
-     The error details.
-     */
-    @property(readonly, nonatomic, nullable) id details;
-    @end
-    
-    
-  
-#ifndef __FLUTTER__
 
 @class Hello;
 
@@ -80,15 +49,35 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 @property(nonatomic, strong) NSIntNumber * age;
 @end
 
+#ifdef __FLUTTER__
+/// The codec used by HelloHostApi.
+NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
+
 #endif
 /// host 平台提供的接口
-@protocol HelloHostApiI
+@protocol HelloHostApi
 /// say hello to host api;
-- (void)sayHelloToHostApi:(Hello *)hello deviceType:(DeviceType)deviceType error:(ACError *_Nullable *_Nonnull)error;
+- (void)sayHelloToHostApi:(Hello *)hello deviceType:(DeviceType)deviceType error:(FlutterError *_Nullable *_Nonnull)error;
 /// 异步做工
-- (void)doWorkInSeconds:(NSIntNumber *)seconds completion:(void (^)(ACError *_Nullable))completion;
+- (void)doWorkInSeconds:(NSIntNumber *)seconds completion:(void (^)(FlutterError *_Nullable))completion;
 /// 异步做工
-- (void)hasSalary:(NSBoolNumber *)has completion:(void (^)(ACError *_Nullable))completion;
+- (void)hasSalary:(NSBoolNumber *)has completion:(void (^)(FlutterError *_Nullable))completion;
+@end
+
+#ifdef __FLUTTER__
+extern void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<HelloHostApi> *_Nullable api);
+
+#endif
+/// The codec used by HelloFlutterApi.
+NSObject<FlutterMessageCodec> *HelloFlutterApiGetCodec(void);
+
+/// flutter 平台提供的接口
+@interface HelloFlutterApi : NSObject
+- (instancetype)initWithBinaryMessenger:(id<FlutterBinaryMessenger>)binaryMessenger;
+/// say hello to flutter api;
+/// - hello 参数
+- (void)sayHelloToFlutterApi:(Hello *)hello completion:(void (^)(FlutterError *_Nullable))completion;
+- (void)sayToFlutterApiHello:(Hello *)hello completion:(void (^)(FlutterError *_Nullable))completion;
 @end
 
 NS_ASSUME_NONNULL_END

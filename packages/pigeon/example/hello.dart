@@ -2,11 +2,16 @@ import 'package:pigeon/pigeon.dart';
 
 /// Hello world!
 class Hello {
-  const Hello({required this.name, required this.deviceType});
+  const Hello({
+    required this.name,
+    required this.deviceType,
+    required this.age,
+  });
 
   /// 名字
   final String name;
   final DeviceType deviceType;
+  final int age;
 }
 
 /// host 平台提供的接口
@@ -21,6 +26,11 @@ abstract class HelloHostApi {
   @async
   @ObjCSelector('doWorkInSeconds:')
   void doWorkInSeconds(int seconds);
+
+  /// 异步做工
+  @async
+  @ObjCSelector('hasSalary:')
+  void hasSalary(bool has);
 }
 
 /// flutter 平台提供的接口

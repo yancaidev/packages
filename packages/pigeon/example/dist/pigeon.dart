@@ -28,6 +28,7 @@ class Hello {
   Hello({
     required this.name,
     required this.deviceType,
+    required this.age,
   });
 
   /// 名字
@@ -35,10 +36,13 @@ class Hello {
 
   DeviceType deviceType;
 
+  int age;
+
   Object encode() {
     return <Object?>[
       name,
       deviceType.index,
+      age,
     ];
   }
 
@@ -47,6 +51,7 @@ class Hello {
     return Hello(
       name: result[0]! as String,
       deviceType: DeviceType.values[result[1]! as int],
+      age: result[2]! as int,
     );
   }
 }
@@ -115,6 +120,29 @@ class HelloHostApi {
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_seconds]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// 异步做工
+  Future<void> hasSalary(bool arg_has) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.HelloHostApi.hasSalary', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_has]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'ast.dart';
 import 'functional.dart';
 import 'generator.dart';
@@ -155,9 +157,50 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     });
   }
 
+  void _writeKmmExpectClass(
+      KotlinOptions generatorOptions, Root root, Indent indent, Class klass) {
+    if (generatorOptions.output == null) {
+      return;
+    }
+    final String path =
+        generatorOptions.output!.replaceFirst('Pigeon.kt', 'PigeonKMM.kt');
+    print('Kotlin output: ${generatorOptions.output}');
+    final File file = File(path);
+    final IOSink sink = file.openWrite();
+    final Indent indent = Indent(sink);
+    final Set<String> customClassNames =
+        root.classes.map((Class x) => x.name).toSet();
+    final Set<String> customEnumNames =
+        root.enums.map((Enum x) => x.name).toSet();
+    indent.newln();
+    indent.write('expect class ${klass.name} ');
+    indent.addScoped('{', '}', () {
+      for (final NamedType element in getFieldsInSerializationOrder(klass)) {
+        _writeClassField(indent, element);
+        indent.newln();
+      }
+      indent.newln();
+      indent.write('constructor');
+      indent.writeScoped('(', ')', () {
+        for (final NamedType element in getFieldsInSerializationOrder(klass)) {
+          indent.write(
+              '${element.name}: ${_nullsafeKotlinTypeForDartType(element.type)}');
+          final String defaultNil = element.type.isNullable ? ' = null' : '';
+          indent.add(defaultNil);
+          if (getFieldsInSerializationOrder(klass).last != element) {
+            indent.addln(',');
+          } else {
+            indent.newln();
+          }
+        }
+      });
+    });
+  }
+
   @override
   void writeDataClass(
       KotlinOptions generatorOptions, Root root, Indent indent, Class klass) {
+    _writeKmmExpectClass(generatorOptions, root, indent, klass);
     final Set<String> customClassNames =
         root.classes.map((Class x) => x.name).toSet();
     final Set<String> customEnumNames =
@@ -171,7 +214,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         indent, klass.documentationComments, _docCommentSpec,
         generatorComments: generatedMessages);
 
-    indent.write('data class ${klass.name} ');
+    indent.write('class ${klass.name} ');
     indent.addScoped('(', '', () {
       for (final NamedType element in getFieldsInSerializationOrder(klass)) {
         _writeClassField(indent, element);
@@ -182,7 +225,10 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         }
       }
     });
-
+    if (generatorOptions.writeModelsOnly ?? false) {
+      indent.addln(')');
+      return;
+    }
     indent.addScoped(') {', '}', () {
       if (generatorOptions.writeModelsOnly ?? false) {
         return;
@@ -312,7 +358,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     addDocumentationComments(
         indent, field.documentationComments, _docCommentSpec);
     indent.write(
-        'val ${field.name}: ${_nullsafeKotlinTypeForDartType(field.type)}');
+        'var ${field.name}: ${_nullsafeKotlinTypeForDartType(field.type)}');
     final String defaultNil = field.type.isNullable ? ' = null' : '';
     indent.add(defaultNil);
   }

@@ -32,13 +32,13 @@ enum class DeviceType(val raw: Int) {
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
-data class Hello (
+class Hello (
   /** 名字 */
-  val name: String,
-  val deviceType: DeviceType
+  var name: String,
+  var deviceType: DeviceType,
+  var age: Long
 
-) {
-}
+)
 /**
  * host 平台提供的接口
  *
@@ -50,5 +50,7 @@ interface HelloHostApi {
   fun sayHelloToHostApi(hello: Hello, deviceType: DeviceType)
   /** 异步做工 */
   fun doWorkInSeconds(seconds: Long, callback: (Result<Unit>) -> Unit)
+  /** 异步做工 */
+  fun hasSalary(has: Boolean, callback: (Result<Unit>) -> Unit)
 
 }
