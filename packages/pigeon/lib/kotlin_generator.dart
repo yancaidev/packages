@@ -164,7 +164,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
       return;
     }
     final String path =
-        generatorOptions.output!.replaceFirst('Pigeon.kt', 'PigeonKMM.kt');
+        generatorOptions.output!.replaceFirst('.kt', '-KMM.kt');
     print('Kotlin output: ${generatorOptions.output} $path');
     if (kmmModelIndent == null) {
       final File file = File(path);
