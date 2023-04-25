@@ -85,7 +85,7 @@ class KotlinOptions {
 /// Class that manages all Kotlin code generation.
 class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
   /// Instantiates a Kotlin Generator.
-  const KotlinGenerator();
+  KotlinGenerator();
 
   @override
   void writeFilePrologue(
@@ -157,6 +157,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     });
   }
 
+  Indent? kmmModelIndent;
   void _writeKmmExpectClass(
       KotlinOptions generatorOptions, Root root, Indent indent, Class klass) {
     if (generatorOptions.output == null) {
@@ -164,10 +165,14 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     }
     final String path =
         generatorOptions.output!.replaceFirst('Pigeon.kt', 'PigeonKMM.kt');
-    print('Kotlin output: ${generatorOptions.output}');
-    final File file = File(path);
-    final IOSink sink = file.openWrite();
-    final Indent indent = Indent(sink);
+    print('Kotlin output: ${generatorOptions.output} $path');
+    if (kmmModelIndent == null) {
+      final File file = File(path);
+      final IOSink sink = file.openWrite();
+      kmmModelIndent = Indent(sink);
+    }
+
+    final Indent indent = kmmModelIndent!;
     final Set<String> customClassNames =
         root.classes.map((Class x) => x.name).toSet();
     final Set<String> customEnumNames =

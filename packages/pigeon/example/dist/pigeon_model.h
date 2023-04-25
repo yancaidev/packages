@@ -63,9 +63,25 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 #ifndef __FLUTTER__
 
 @class Hello;
+@class Hi;
 
 /// Hello world!
 @interface Hello : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithName:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age;
++ (instancetype)create:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age;
+/// 名字
+@property(nonatomic, copy) NSString * name;
+@property(nonatomic, assign) DeviceType deviceType;
+@property(nonatomic, strong) NSIntNumber * age;
+@end
+
+@interface Hi : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)makeWithName:(NSString *)name
@@ -85,6 +101,7 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 @protocol HelloHostApiI
 /// say hello to host api;
 - (void)sayHelloToHostApi:(Hello *)hello deviceType:(DeviceType)deviceType error:(ACError *_Nullable *_Nonnull)error;
+- (void)sayHiHi:(Hi *)hi error:(ACError *_Nullable *_Nonnull)error;
 /// 异步做工
 - (void)doWorkInSeconds:(NSIntNumber *)seconds completion:(void (^)(ACError *_Nullable))completion;
 /// 异步做工

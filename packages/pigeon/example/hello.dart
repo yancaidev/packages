@@ -14,6 +14,19 @@ class Hello {
   final int age;
 }
 
+class Hi {
+  const Hi({
+    required this.name,
+    required this.deviceType,
+    required this.age,
+  });
+
+  /// 名字
+  final String name;
+  final DeviceType deviceType;
+  final int age;
+}
+
 /// host 平台提供的接口
 @HostApi()
 abstract class HelloHostApi {
@@ -21,6 +34,8 @@ abstract class HelloHostApi {
   @ObjCSelector('sayHelloToHostApi:deviceType:')
   @KMMObjcMethodName('say')
   void sayHelloToHostApi(Hello hello, DeviceType deviceType);
+
+  void sayHi(Hi hi);
 
   /// 异步做工
   @async

@@ -39,6 +39,15 @@ class Hello (
   var age: Long
 
 )
+
+/** Generated class from Pigeon that represents data sent in messages. */
+class Hi (
+  /** 名字 */
+  var name: String,
+  var deviceType: DeviceType,
+  var age: Long
+
+)
 /**
  * host 平台提供的接口
  *
@@ -48,6 +57,7 @@ interface HelloHostApi {
   /** say hello to host api; */
   @ObjCName("say")
   fun sayHelloToHostApi(hello: Hello, deviceType: DeviceType)
+  fun sayHi(hi: Hi)
   /** 异步做工 */
   fun doWorkInSeconds(seconds: Long, callback: (Result<Unit>) -> Unit)
   /** 异步做工 */

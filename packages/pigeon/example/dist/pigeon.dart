@@ -56,12 +56,47 @@ class Hello {
   }
 }
 
+class Hi {
+  Hi({
+    required this.name,
+    required this.deviceType,
+    required this.age,
+  });
+
+  /// 名字
+  String name;
+
+  DeviceType deviceType;
+
+  int age;
+
+  Object encode() {
+    return <Object?>[
+      name,
+      deviceType.index,
+      age,
+    ];
+  }
+
+  static Hi decode(Object result) {
+    result as List<Object?>;
+    return Hi(
+      name: result[0]! as String,
+      deviceType: DeviceType.values[result[1]! as int],
+      age: result[2]! as int,
+    );
+  }
+}
+
 class _HelloHostApiCodec extends StandardMessageCodec {
   const _HelloHostApiCodec();
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is Hello) {
       buffer.putUint8(128);
+      writeValue(buffer, value.encode());
+    } else if (value is Hi) {
+      buffer.putUint8(129);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -73,6 +108,8 @@ class _HelloHostApiCodec extends StandardMessageCodec {
     switch (type) {
       case 128: 
         return Hello.decode(readValue(buffer)!);
+      case 129: 
+        return Hi.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -97,6 +134,28 @@ class HelloHostApi {
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_hello, arg_deviceType.raw]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> sayHi(Hi arg_hi) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.HelloHostApi.sayHi', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_hi]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

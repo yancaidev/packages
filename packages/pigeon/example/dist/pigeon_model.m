@@ -63,5 +63,26 @@ NS_ASSUME_NONNULL_BEGIN
 }
 @end
 
+@implementation Hi
++ (instancetype)makeWithName:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age {
+  Hi* pigeonResult = [[Hi alloc] init];
+  pigeonResult.name = name;
+  pigeonResult.deviceType = deviceType;
+  pigeonResult.age = age;
+  return pigeonResult;
+}
++ (instancetype)create:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age {
+  Hi* pigeonResult = [[Hi alloc] init];
+  pigeonResult.name = name;
+  pigeonResult.deviceType = deviceType;
+  pigeonResult.age = age;
+  return pigeonResult;
+}
+@end
+
 #endif
 NS_ASSUME_NONNULL_END

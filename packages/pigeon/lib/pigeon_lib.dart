@@ -673,7 +673,7 @@ class KotlinGeneratorAdapter implements GeneratorAdapter {
     );
     print('合并后： kotlin: writeModelsOnly ${kotlinOptions.writeModelsOnly}');
     // 将 kotlin output 传递下去，用于 api 和 models 分离
-    const KotlinGenerator generator = KotlinGenerator();
+    final KotlinGenerator generator = KotlinGenerator();
     generator.generate(kotlinOptions, root, sink);
   }
 

@@ -11,3 +11,16 @@ expect class Hello {
     age: Long
   )
 }
+
+expect class Hi {
+  /** 名字 */
+  var name: String
+  var deviceType: DeviceType
+  var age: Long
+
+  constructor  (
+    name: String,
+    deviceType: DeviceType,
+    age: Long
+  )
+}
