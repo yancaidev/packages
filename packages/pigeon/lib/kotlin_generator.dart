@@ -226,9 +226,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         _writeClassField(indent, element);
         if (getFieldsInSerializationOrder(klass).last != element) {
           indent.addln(',');
-        } else {
-          indent.newln();
-        }
+        } 
       }
     });
     if (generatorOptions.writeModelsOnly ?? false) {
