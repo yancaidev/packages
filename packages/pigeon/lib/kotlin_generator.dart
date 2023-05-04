@@ -226,7 +226,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         _writeClassField(indent, element);
         if (getFieldsInSerializationOrder(klass).last != element) {
           indent.addln(',');
-        } 
+        }
       }
     });
     if (generatorOptions.writeModelsOnly ?? false) {
@@ -511,9 +511,13 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     indent.write('interface $apiName ');
     indent.addScoped('{', writeModelsOnly ? '}' : '', () {
       for (final Method method in api.methods) {
+        if (method.ignored) {
+          continue;
+        }
         final List<String> argSignature = <String>[];
         if (method.arguments.isNotEmpty) {
           final Iterable<String> argTypes = method.arguments
+              .where((NamedType element) => !element.ignored)
               .map((NamedType e) => _nullsafeKotlinTypeForDartType(e.type));
           final Iterable<String> argNames =
               method.arguments.map((NamedType e) => e.name);
@@ -852,8 +856,10 @@ String _kotlinTypeForBuiltinGenericDartType(TypeDeclaration type) {
   }
 }
 
+bool writeModelsOnly = false;
+
 String? _kotlinTypeForBuiltinDartType(TypeDeclaration type) {
-  const Map<String, String> kotlinTypeForDartTypeMap = <String, String>{
+  Map<String, String> kotlinTypeForDartTypeMap = <String, String>{
     'void': 'Void',
     'bool': 'Boolean',
     'String': 'String',
@@ -866,6 +872,23 @@ String? _kotlinTypeForBuiltinDartType(TypeDeclaration type) {
     'Float64List': 'DoubleArray',
     'Object': 'Any',
   };
+  if (writeModelsOnly) {
+    kotlinTypeForDartTypeMap = <String, String>{
+      'void': 'Void',
+      'bool': 'Boolean',
+      'String': 'String',
+      'int': 'Int',
+      'long': 'Long',
+      'float': 'Float',
+      'double': 'Double',
+      'Uint8List': 'ByteArray',
+      'Int32List': 'IntArray',
+      'Int64List': 'LongArray',
+      'Float32List': 'FloatArray',
+      'Float64List': 'DoubleArray',
+      'Object': 'Any',
+    };
+  }
   if (kotlinTypeForDartTypeMap.containsKey(type.baseName)) {
     return kotlinTypeForDartTypeMap[type.baseName];
   } else if (type.baseName == 'List' || type.baseName == 'Map') {

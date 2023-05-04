@@ -22,3 +22,9 @@ expect class Hi {
     age: Long
   )
 }
+
+expect class Hb {
+
+  constructor  (
+  )
+}

@@ -104,7 +104,7 @@ class ObjcHeaderGenerator extends StructuredGenerator<ObjcOptions> {
   }
 
   void _remappingTypes(Indent indent) {
-    indent.writeln('NS_ASSUME_NONNULL_BEGIN');
+    // indent.writeln('NS_ASSUME_NONNULL_BEGIN');
     indent.writeln('#define NSIntNumber NSNumber');
     indent.writeln('#define NSBoolNumber NSNumber');
     indent.writeln('#define NSDoubleNumber NSNumber');

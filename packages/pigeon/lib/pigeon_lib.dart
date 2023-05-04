@@ -63,6 +63,16 @@ class KMMObjcMethodName {
   final String name;
 }
 
+/// 应用在方法和方法参数上
+/// 在 KMM 中不生成，只在 flutter 中生成
+class Ignored {
+  ///
+  const Ignored({this.ignore = false});
+
+  /// true 在 KMM 中不生成，只在 flutter 中生成， false， 在 flutter 和 KMM 中都生成
+  final bool ignore;
+}
+
 /// Metadata annotation used to configure how Pigeon will generate code.
 class ConfigurePigeon {
   /// Constructor for ConfigurePigeon.

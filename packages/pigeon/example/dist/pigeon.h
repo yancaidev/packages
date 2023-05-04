@@ -32,9 +32,26 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 };
 
 @class Hello;
+@class Hi;
+@class Hb;
 
 /// Hello world!
 @interface Hello : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithName:(nullable NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age;
++ (instancetype)create:(nullable NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age;
+/// 名字
+@property(nonatomic, copy, nullable) NSString * name;
+@property(nonatomic, assign) DeviceType deviceType;
+@property(nonatomic, strong) NSIntNumber * age;
+@end
+
+@interface Hi : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)makeWithName:(NSString *)name
@@ -49,6 +66,9 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 @property(nonatomic, strong) NSIntNumber * age;
 @end
 
+@interface Hb : NSObject
+@end
+
 #ifdef __FLUTTER__
 /// The codec used by HelloHostApi.
 NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
@@ -56,6 +76,7 @@ NSObject<FlutterMessageCodec> *HelloHostApiGetCodec(void);
 #endif
 /// host 平台提供的接口
 @protocol HelloHostApi
+- (void)sayHiHi:(Hi *)hi hb:(Hb *)hb error:(FlutterError *_Nullable *_Nonnull)error;
 /// say hello to host api;
 - (void)sayHelloToHostApi:(Hello *)hello deviceType:(DeviceType)deviceType error:(FlutterError *_Nullable *_Nonnull)error;
 /// 异步做工

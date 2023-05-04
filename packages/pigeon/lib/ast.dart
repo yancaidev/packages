@@ -26,18 +26,18 @@ class Node {}
 /// Represents a method on an [Api].
 class Method extends Node {
   /// Parametric constructor for [Method].
-  Method({
-    required this.name,
-    required this.returnType,
-    required this.arguments,
-    this.isAsynchronous = false,
-    this.offset,
-    this.objcSelector = '',
-    this.kmmObjcMethodName = '',
-    this.swiftFunction = '',
-    this.taskQueueType = TaskQueueType.serial,
-    this.documentationComments = const <String>[],
-  });
+  Method(
+      {required this.name,
+      required this.returnType,
+      required this.arguments,
+      this.isAsynchronous = false,
+      this.offset,
+      this.objcSelector = '',
+      this.kmmObjcMethodName = '',
+      this.swiftFunction = '',
+      this.taskQueueType = TaskQueueType.serial,
+      this.documentationComments = const <String>[],
+      this.ignored = false});
 
   /// The name of the method.
   String name;
@@ -59,6 +59,9 @@ class Method extends Node {
 
   /// An override for the generated kmm objc method name.
   String kmmObjcMethodName;
+
+  /// Whether the method should be hidden when not for Flutter.
+  bool ignored;
 
   /// An override for the generated swift function signature (ex. "divideNumber(_:by:)").
   String swiftFunction;
@@ -184,11 +187,14 @@ class TypeDeclaration {
 class NamedType extends Node {
   /// Parametric constructor for [NamedType].
   NamedType({
+    this.ignored = false,
     required this.name,
     required this.type,
     this.offset,
     this.documentationComments = const <String>[],
   });
+
+  bool ignored;
 
   /// The name of the entity.
   String name;

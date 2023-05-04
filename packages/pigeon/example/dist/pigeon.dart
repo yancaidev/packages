@@ -88,15 +88,34 @@ class Hi {
   }
 }
 
+class Hb {
+  Hb({
+  });
+
+  Object encode() {
+    return <Object?>[
+    ];
+  }
+
+  static Hb decode(Object result) {
+    result as List<Object?>;
+    return Hb(
+    );
+  }
+}
+
 class _HelloHostApiCodec extends StandardMessageCodec {
   const _HelloHostApiCodec();
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
-    if (value is Hello) {
+    if (value is Hb) {
       buffer.putUint8(128);
       writeValue(buffer, value.encode());
-    } else if (value is Hi) {
+    } else if (value is Hello) {
       buffer.putUint8(129);
+      writeValue(buffer, value.encode());
+    } else if (value is Hi) {
+      buffer.putUint8(130);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -107,8 +126,10 @@ class _HelloHostApiCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 128: 
-        return Hello.decode(readValue(buffer)!);
+        return Hb.decode(readValue(buffer)!);
       case 129: 
+        return Hello.decode(readValue(buffer)!);
+      case 130: 
         return Hi.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -127,13 +148,12 @@ class HelloHostApi {
 
   static const MessageCodec<Object?> codec = _HelloHostApiCodec();
 
-  /// say hello to host api;
-  Future<void> sayHelloToHostApi(Hello arg_hello, DeviceType arg_deviceType) async {
+  Future<void> sayHi(Hi arg_hi, Hb arg_hb) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.HelloHostApi.sayHelloToHostApi', codec,
+        'dev.flutter.pigeon.HelloHostApi.sayHi', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_hello, arg_deviceType.raw]) as List<Object?>?;
+        await channel.send(<Object?>[arg_hi, arg_hb]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -150,12 +170,13 @@ class HelloHostApi {
     }
   }
 
-  Future<void> sayHi(Hi arg_hi) async {
+  /// say hello to host api;
+  Future<void> sayHelloToHostApi(Hello arg_hello, DeviceType arg_deviceType) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.HelloHostApi.sayHi', codec,
+        'dev.flutter.pigeon.HelloHostApi.sayHelloToHostApi', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_hi]) as List<Object?>?;
+        await channel.send(<Object?>[arg_hello, arg_deviceType.raw]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

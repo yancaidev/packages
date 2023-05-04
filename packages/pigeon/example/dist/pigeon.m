@@ -29,8 +29,20 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface Hi ()
++ (Hi *)fromList:(NSArray *)list;
++ (nullable Hi *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
+@interface Hb ()
++ (Hb *)fromList:(NSArray *)list;
++ (nullable Hb *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @implementation Hello
-+ (instancetype)makeWithName:(NSString *)name
++ (instancetype)makeWithName:(nullable NSString *)name
     deviceType:(DeviceType)deviceType
     age:(NSIntNumber *)age {
   Hello* pigeonResult = [[Hello alloc] init];
@@ -39,7 +51,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   pigeonResult.age = age;
   return pigeonResult;
 }
-+ (instancetype)create:(NSString *)name
++ (instancetype)create:(nullable NSString *)name
     deviceType:(DeviceType)deviceType
     age:(NSIntNumber *)age {
   Hello* pigeonResult = [[Hello alloc] init];
@@ -51,7 +63,6 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 + (Hello *)fromList:(NSArray *)list {
   Hello *pigeonResult = [[Hello alloc] init];
   pigeonResult.name = GetNullableObjectAtIndex(list, 0);
-  NSAssert(pigeonResult.name != nil, @"");
   pigeonResult.deviceType = [GetNullableObjectAtIndex(list, 1) integerValue];
   pigeonResult.age = GetNullableObjectAtIndex(list, 2);
   NSAssert(pigeonResult.age != nil, @"");
@@ -69,13 +80,79 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 }
 @end
 
+@implementation Hi
++ (instancetype)makeWithName:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age {
+  Hi* pigeonResult = [[Hi alloc] init];
+  pigeonResult.name = name;
+  pigeonResult.deviceType = deviceType;
+  pigeonResult.age = age;
+  return pigeonResult;
+}
++ (instancetype)create:(NSString *)name
+    deviceType:(DeviceType)deviceType
+    age:(NSIntNumber *)age {
+  Hi* pigeonResult = [[Hi alloc] init];
+  pigeonResult.name = name;
+  pigeonResult.deviceType = deviceType;
+  pigeonResult.age = age;
+  return pigeonResult;
+}
++ (Hi *)fromList:(NSArray *)list {
+  Hi *pigeonResult = [[Hi alloc] init];
+  pigeonResult.name = GetNullableObjectAtIndex(list, 0);
+  NSAssert(pigeonResult.name != nil, @"");
+  pigeonResult.deviceType = [GetNullableObjectAtIndex(list, 1) integerValue];
+  pigeonResult.age = GetNullableObjectAtIndex(list, 2);
+  NSAssert(pigeonResult.age != nil, @"");
+  return pigeonResult;
+}
++ (nullable Hi *)nullableFromList:(NSArray *)list {
+  return (list) ? [Hi fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.name ?: [NSNull null]),
+    @(self.deviceType),
+    (self.age ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation Hb
++ (instancetype)makeWith {
+  Hb* pigeonResult = [[Hb alloc] init];
+  return pigeonResult;
+}
++ (instancetype)create {
+  Hb* pigeonResult = [[Hb alloc] init];
+  return pigeonResult;
+}
++ (Hb *)fromList:(NSArray *)list {
+  Hb *pigeonResult = [[Hb alloc] init];
+  return pigeonResult;
+}
++ (nullable Hb *)nullableFromList:(NSArray *)list {
+  return (list) ? [Hb fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+  ];
+}
+@end
+
 @interface HelloHostApiCodecReader : FlutterStandardReader
 @end
 @implementation HelloHostApiCodecReader
 - (nullable id)readValueOfType:(UInt8)type {
   switch (type) {
     case 128: 
+      return [Hb fromList:[self readValue]];
+    case 129: 
       return [Hello fromList:[self readValue]];
+    case 130: 
+      return [Hi fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
   }
@@ -86,8 +163,14 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 @end
 @implementation HelloHostApiCodecWriter
 - (void)writeValue:(id)value {
-  if ([value isKindOfClass:[Hello class]]) {
+  if ([value isKindOfClass:[Hb class]]) {
     [self writeByte:128];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[Hello class]]) {
+    [self writeByte:129];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[Hi class]]) {
+    [self writeByte:130];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -117,6 +200,26 @@ NSObject<FlutterMessageCodec> *HelloHostApiGetCodec() {
 }
 
 void HelloHostApiSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<HelloHostApi> *api) {
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.HelloHostApi.sayHi"
+        binaryMessenger:binaryMessenger
+        codec:HelloHostApiGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(sayHiHi:hb:error:)], @"HelloHostApi api (%@) doesn't respond to @selector(sayHiHi:hb:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        Hi *arg_hi = GetNullableObjectAtIndex(args, 0);
+        Hb *arg_hb = GetNullableObjectAtIndex(args, 1);
+        FlutterError *error;
+        [api sayHiHi:arg_hi hb:arg_hb error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
   /// say hello to host api;
   {
     FlutterBasicMessageChannel *channel =

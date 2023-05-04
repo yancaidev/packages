@@ -27,15 +27,17 @@ class Hi {
   final int age;
 }
 
+class Hb {}
+
 /// host 平台提供的接口
 @HostApi()
 abstract class HelloHostApi {
+  void sayHi(Hi hi, Hb hb);
+
   /// say hello to host api;
   @ObjCSelector('sayHelloToHostApi:deviceType:')
   @KMMObjcMethodName('say')
   void sayHelloToHostApi(Hello hello, DeviceType deviceType);
-
-  void sayHi(Hi hi);
 
   /// 异步做工
   @async
