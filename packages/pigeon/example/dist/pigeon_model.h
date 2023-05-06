@@ -3,7 +3,6 @@
 
 #import <Foundation/Foundation.h>
 
-NS_ASSUME_NONNULL_BEGIN
 #define NSIntNumber NSNumber
 #define NSBoolNumber NSNumber
 #define NSDoubleNumber NSNumber
@@ -64,6 +63,7 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 
 @class Hello;
 @class Hi;
+@class Hb;
 
 /// Hello world!
 @interface Hello : NSObject
@@ -96,12 +96,15 @@ typedef NS_ENUM(NSUInteger, DeviceType) {
 @property(nonatomic, strong) NSIntNumber * age;
 @end
 
+@interface Hb : NSObject
+@end
+
 #endif
 /// host 平台提供的接口
 @protocol HelloHostApiI
+- (void)sayHiHi:(Hi *)hi hb:(Hb *)hb error:(ACError *_Nullable *_Nonnull)error;
 /// say hello to host api;
 - (void)sayHelloToHostApi:(Hello *)hello deviceType:(DeviceType)deviceType error:(ACError *_Nullable *_Nonnull)error;
-- (void)sayHiHi:(Hi *)hi error:(ACError *_Nullable *_Nonnull)error;
 /// 异步做工
 - (void)doWorkInSeconds:(NSIntNumber *)seconds completion:(void (^)(ACError *_Nullable))completion;
 /// 异步做工

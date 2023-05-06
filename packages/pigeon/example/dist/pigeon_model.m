@@ -84,5 +84,16 @@ NS_ASSUME_NONNULL_BEGIN
 }
 @end
 
+@implementation Hb
++ (instancetype)makeWith {
+  Hb* pigeonResult = [[Hb alloc] init];
+  return pigeonResult;
+}
++ (instancetype)create {
+  Hb* pigeonResult = [[Hb alloc] init];
+  return pigeonResult;
+}
+@end
+
 #endif
 NS_ASSUME_NONNULL_END
