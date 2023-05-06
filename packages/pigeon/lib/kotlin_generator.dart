@@ -876,7 +876,7 @@ String _kotlinTypeForBuiltinGenericDartType(TypeDeclaration type) {
 }
 
 String? _kotlinTypeForBuiltinDartType(TypeDeclaration type) {
-  Map<String, String> kotlinTypeForDartTypeMap = <String, String>{
+  final Map<String, String> kotlinTypeForDartTypeMap = <String, String>{
     'void': 'Void',
     'bool': 'Boolean',
     'String': 'String',
@@ -889,23 +889,23 @@ String? _kotlinTypeForBuiltinDartType(TypeDeclaration type) {
     'Float64List': 'DoubleArray',
     'Object': 'Any',
   };
-  if (writeModelsOnly) {
-    kotlinTypeForDartTypeMap = <String, String>{
-      'void': 'Void',
-      'bool': 'Boolean',
-      'String': 'String',
-      'int': 'Int',
-      'long': 'Long',
-      'float': 'Float',
-      'double': 'Double',
-      'Uint8List': 'ByteArray',
-      'Int32List': 'IntArray',
-      'Int64List': 'LongArray',
-      'Float32List': 'FloatArray',
-      'Float64List': 'DoubleArray',
-      'Object': 'Any',
-    };
-  }
+  // if (writeModelsOnly) {
+  //   kotlinTypeForDartTypeMap = <String, String>{
+  //     'void': 'Void',
+  //     'bool': 'Boolean',
+  //     'String': 'String',
+  //     'int': 'Int',
+  //     'long': 'Long',
+  //     'float': 'Float',
+  //     'double': 'Double',
+  //     'Uint8List': 'ByteArray',
+  //     'Int32List': 'IntArray',
+  //     'Int64List': 'LongArray',
+  //     'Float32List': 'FloatArray',
+  //     'Float64List': 'DoubleArray',
+  //     'Object': 'Any',
+  //   };
+  // }
   if (kotlinTypeForDartTypeMap.containsKey(type.baseName)) {
     return kotlinTypeForDartTypeMap[type.baseName];
   } else if (type.baseName == 'List' || type.baseName == 'Map') {
