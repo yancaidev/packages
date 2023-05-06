@@ -697,7 +697,7 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         });
       }
     });
-    indent.add('}');
+    // indent.add('}');
     // });
   }
 
