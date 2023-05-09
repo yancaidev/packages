@@ -1069,7 +1069,7 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
     for (final dart_ast_syntactic_entity.SyntacticEntity child
         in entity.childEntities) {
       if (child is T) {
-        return child as T;
+        return child;
       }
     }
     return null;
@@ -1180,9 +1180,9 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
         documentationComments:
             _documentationCommentsParser(e.documentationComment?.tokens),
       ));
-      print('枚举值为$value');
+      // print('枚举值为$value');
     }
-    print('访问枚举值');
+    // print('访问枚举值');
     _enums.add(Enum(
       name: node.name.lexeme,
       members: enumMembers.toList(),
