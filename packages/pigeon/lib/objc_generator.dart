@@ -1411,7 +1411,7 @@ String _listGetter(Set<String> customClassNames, String list, NamedType field,
 
 String _arrayValue(Set<String> customClassNames, Set<String> customEnumNames,
     NamedType field) {
-  print('====== field: ${field.name} ${field.type.baseName}}');
+  // print('====== field: ${field.name} ${field.type.baseName}}');
   if (customClassNames.contains(field.type.baseName)) {
     return '(self.${field.name} ? [self.${field.name} toList] : [NSNull null])';
   } else if (customEnumNames.contains(field.type.baseName)) {
