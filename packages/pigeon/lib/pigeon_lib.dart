@@ -1069,7 +1069,7 @@ class _RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
     for (final dart_ast_syntactic_entity.SyntacticEntity child
         in entity.childEntities) {
       if (child is T) {
-        return child;
+        return child as T;
       }
     }
     return null;
