@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
 
 import 'ast.dart';
 import 'functional.dart';
@@ -30,15 +29,20 @@ const DocumentCommentSpecification _docCommentSpec =
 /// Options that control how Kotlin code will be generated.
 class KotlinOptions {
   /// Creates a [KotlinOptions] object
-  const KotlinOptions(
-      {this.package,
-      this.copyrightHeader,
-      this.errorClassName,
-      this.output,
-      this.writeModelsOnly});
+  const KotlinOptions({
+    this.package,
+    this.copyrightHeader,
+    this.errorClassName,
+    this.output,
+    this.writeModelsOnly,
+    this.writeForKMM,
+  });
 
   /// Whether to write only models or all classes.
   final bool? writeModelsOnly;
+
+  /// 为 KMM 平台生成代码
+  final bool? writeForKMM;
 
   /// The package where the generated class will live.
   final String? package;
@@ -161,53 +165,6 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
         indent.addScoped('{', '}', () {
           indent.writeln('return values().firstOrNull { it.raw == raw }');
         });
-      });
-    });
-  }
-
-  /// 生成 kmm expect 文件
-  Indent? kmmModelIndent;
-  void _writeKmmExpectClass(
-      KotlinOptions generatorOptions, Root root, Indent indent, Class klass) {
-    if (generatorOptions.output == null) {
-      return;
-    }
-    final String path = generatorOptions.output!.replaceFirst('.kt', '-KMM.kt');
-    print('Kotlin output: ${generatorOptions.output} $path');
-    if (kmmModelIndent == null) {
-      final File file = File(path);
-      final IOSink sink = file.openWrite();
-      kmmModelIndent = Indent(sink);
-    }
-
-    final Indent indent = kmmModelIndent!;
-    final Set<String> customClassNames =
-        root.classes.map((Class x) => x.name).toSet();
-    final Set<String> customEnumNames =
-        root.enums.map((Enum x) => x.name).toSet();
-    indent.newln();
-    indent.write('expect class ${klass.name} ');
-    indent.addScoped('{', '}', () {
-      for (final NamedType element in getFieldsInSerializationOrder(klass)) {
-        final NamedType field = element;
-        indent.write(
-            'var ${field.name}: ${_nullsafeKotlinTypeForDartType(field.type)}');
-        indent.newln();
-      }
-      indent.newln();
-      indent.write('constructor');
-      indent.writeScoped('(', ')', () {
-        for (final NamedType element in getFieldsInSerializationOrder(klass)) {
-          indent.write(
-              '${element.name}: ${_nullsafeKotlinTypeForDartType(element.type)}');
-          final String defaultNil = element.type.isNullable ? ' = null' : '';
-          indent.add(defaultNil);
-          if (getFieldsInSerializationOrder(klass).last != element) {
-            indent.addln(',');
-          } else {
-            indent.newln();
-          }
-        }
       });
     });
   }
@@ -554,13 +511,13 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
           indent.writeln('@ObjCName("${method.kmmObjcMethodName}")');
         }
         if (method.isAsynchronous) {
-          if (writeModelsOnly) {
-            // 只编译 models 时，将 Result<$resultType> 改为 CommonResult， 这样在 KMM 中转换到 OC 时，不会出现类型为 id
-            argSignature.add('callback: (CommonResult) -> Unit');
-          } else {
-            // 在 flutter 中使用时保留其原有类型
-            argSignature.add('callback: (Result<$resultType>) -> Unit');
-          }
+          // if (writeModelsOnly) {
+          //   // 只编译 models 时，将 Result<$resultType> 改为 CommonResult， 这样在 KMM 中转换到 OC 时，不会出现类型为 id
+          //   argSignature.add('callback: (CommonResult) -> Unit');
+          // } else {
+          // 在 flutter 中使用时保留其原有类型
+          argSignature.add('callback: (Result<$resultType>) -> Unit');
+          // }
           indent.writeln('fun ${method.name}(${argSignature.join(', ')})');
         } else if (method.returnType.isVoid) {
           indent.writeln('fun ${method.name}(${argSignature.join(', ')})');
