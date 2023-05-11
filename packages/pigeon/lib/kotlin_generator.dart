@@ -554,7 +554,13 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
           indent.writeln('@ObjCName("${method.kmmObjcMethodName}")');
         }
         if (method.isAsynchronous) {
-          argSignature.add('callback: (Result<$resultType>) -> Unit');
+          if (writeModelsOnly) {
+            // 只编译 models 时，将 Result<$resultType> 改为 CommonResult， 这样在 KMM 中转换到 OC 时，不会出现类型为 id
+            argSignature.add('callback: (CommonResult) -> Unit');
+          } else {
+            // 在 flutter 中使用时保留其原有类型
+            argSignature.add('callback: (Result<$resultType>) -> Unit');
+          }
           indent.writeln('fun ${method.name}(${argSignature.join(', ')})');
         } else if (method.returnType.isVoid) {
           indent.writeln('fun ${method.name}(${argSignature.join(', ')})');
