@@ -178,12 +178,11 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     final Set<String> customEnumNames =
         root.enums.map((Enum x) => x.name).toSet();
     const List<String> generatedMessages = <String>[
-      ' Generated class from Pigeon that represents data sent in messages.'
+      // ' Generated class from Pigeon that represents data sent in messages.'
     ];
     indent.newln();
     addDocumentationComments(
-        indent, klass.documentationComments, _docCommentSpec,
-        generatorComments: generatedMessages);
+        indent, klass.documentationComments, _docCommentSpec);
     if (!writeModelsOnly) {
       writeClassDecode(generatorOptions, root, indent, klass, customClassNames,
           customEnumNames);
@@ -390,10 +389,10 @@ class KotlinGenerator extends StructuredGenerator<KotlinOptions> {
     }
 
     const List<String> generatedMessages = <String>[
-      ' Generated class from Pigeon that represents Flutter messages that can be called from Kotlin.'
+      // ' Generated class from Pigeon that represents Flutter messages that can be called from Kotlin.'
     ];
-    addDocumentationComments(indent, api.documentationComments, _docCommentSpec,
-        generatorComments: generatedMessages);
+    addDocumentationComments(
+        indent, api.documentationComments, _docCommentSpec);
 
     final String apiName = api.name;
     indent.writeln('@Suppress("UNCHECKED_CAST")');
