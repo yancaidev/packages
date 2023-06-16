@@ -1,3 +1,35 @@
+## 0.8.9
+
+* Adds `getMedia` and `getMultipleMedia` methods.
+
+## 0.8.8
+
+* Adds initial support for Windows, macOS, and Linux.
+    * See README for current desktop limitations.
+* Adds `supportsImageSource` to allow runtime checks for whether a given source
+  is supported by the current platform's implementation.
+
+## 0.8.7+5
+
+* Fixes `BuildContext` handling in example.
+
+## 0.8.7+4
+
+* Updates README to mention usage of `launchMode: singleInstance` for Android.
+
+## 0.8.7+3
+
+* Adds handling of unsupported image types to the example.
+
+## 0.8.7+2
+
+* Updates minimum Flutter version to 3.3.
+* Fixes a broken link in the example related to `image_picker_for_web`.
+
+## 0.8.7+1
+
+* Updates README to use code excerpts.
+
 ## 0.8.7
 
 * Adds `usePhotoPickerAndroid` options.
