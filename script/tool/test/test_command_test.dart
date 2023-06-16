@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
@@ -17,7 +15,7 @@ import 'mocks.dart';
 import 'util.dart';
 
 void main() {
-  group('$TestCommand', () {
+  group('TestCommand', () {
     late FileSystem fileSystem;
     late Platform mockPlatform;
     late Directory packagesDir;
@@ -86,9 +84,10 @@ void main() {
 
       processRunner
               .mockProcessesForExecutable[getFlutterCommand(mockPlatform)] =
-          <io.Process>[
-        MockProcess(exitCode: 1), // plugin 1 test
-        MockProcess(), // plugin 2 test
+          <FakeProcessInfo>[
+        FakeProcessInfo(
+            MockProcess(exitCode: 1), <String>['test']), // plugin 1 test
+        FakeProcessInfo(MockProcess(), <String>['test']), // plugin 2 test
       ];
 
       Error? commandError;
@@ -173,8 +172,8 @@ void main() {
       createFakePackage('a_package', packagesDir,
           extraFiles: <String>['test/empty_test.dart']);
 
-      processRunner.mockProcessesForExecutable['dart'] = <io.Process>[
-        MockProcess(exitCode: 1), // dart pub get
+      processRunner.mockProcessesForExecutable['dart'] = <FakeProcessInfo>[
+        FakeProcessInfo(MockProcess(exitCode: 1), <String>['pub', 'get'])
       ];
 
       Error? commandError;
@@ -197,9 +196,9 @@ void main() {
       createFakePackage('a_package', packagesDir,
           extraFiles: <String>['test/empty_test.dart']);
 
-      processRunner.mockProcessesForExecutable['dart'] = <io.Process>[
-        MockProcess(), // dart pub get
-        MockProcess(exitCode: 1), // dart pub run test
+      processRunner.mockProcessesForExecutable['dart'] = <FakeProcessInfo>[
+        FakeProcessInfo(MockProcess(), <String>['pub', 'get']),
+        FakeProcessInfo(MockProcess(exitCode: 1), <String>['run']), // run test
       ];
 
       Error? commandError;
@@ -236,6 +235,27 @@ void main() {
               getFlutterCommand(mockPlatform),
               const <String>['test', '--color', '--platform=chrome'],
               plugin.path),
+        ]),
+      );
+    });
+
+    test('Does not run on Chrome for web endorsements', () async {
+      final RepositoryPackage plugin = createFakePlugin(
+        'plugin',
+        packagesDir,
+        extraFiles: <String>['test/empty_test.dart'],
+        platformSupport: <String, PlatformDetails>{
+          platformWeb: const PlatformDetails(PlatformSupport.federated),
+        },
+      );
+
+      await runCapturingPrint(runner, <String>['test']);
+
+      expect(
+        processRunner.recordedCalls,
+        orderedEquals(<ProcessCall>[
+          ProcessCall(getFlutterCommand(mockPlatform),
+              const <String>['test', '--color'], plugin.path),
         ]),
       );
     });
